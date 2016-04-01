@@ -9,25 +9,29 @@
 .body {
   height:100%;
   vertical-align: center;
-  background-image: url('background.png');
+  background-image: url('justsky.png');
   background-position: center top;
   background-size: auto 100%;
   overflow-x:hidden;
-  overflow-y:hidden;
+  overflow-y: scroll;
 }
 
 .quote {
   font-family: 'Cabin Sketch', cursive;
   font-size: 15px;
   position: center;
+  bottom: -25px;
 }
 
 .container {
+  background-image: url('dock.png');
+  background-size: auto 100%;
+  height: 25%;
   width: 100%;
   text-align: center;
   position: fixed;
   color: #000000;
-  bottom:20px;
+  bottom:0;
 }
 
 .portrait {
@@ -78,6 +82,10 @@
 
 #footer-padding {
   height:10px;
+}
+
+#footer-upper-padding {
+  height:40%;
 }
 
 .cloud-1 {
@@ -151,6 +159,7 @@
 
   <br><br>
   <div class="container">
+      <div id="footer-upper-padding"></div>
       <i class="fa fa-github-alt fa-3x"></i>&nbsp;&nbsp;
       <i class="fa fa-instagram fa-3x"></i>&nbsp;&nbsp;
       <i class="fa fa-twitter fa-3x"></i></i>&nbsp;&nbsp;
