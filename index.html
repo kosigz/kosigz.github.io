@@ -172,32 +172,33 @@
     "\"As you are now, so once was I. As I am now, so you must be.\"",
     "\"Do not fear failure. Not failure, but low aim, is the crime. In great attempts it is glorious even to fail.\"",
     "\"Climb the mountain not to plant your flag, but to embrace the challenge, enjoy the air and behold the view.\"",
-    "\"I just want to sleep on the beach.\""
+    "\"I just want to sleep on the beach.\"",
+    "\"People who write complicated programs aren't smarter than you. They know something you don't about dealing with complexity.\""
   ]
 
   $(document).keydown(function(e) {
     switch(e.which) {
         case 37: // left
           var newLeft = parseInt($(".chopper").css("left")) - 30;
-          $(".chopper").css({left:newLeft, top: $(".chopper").css("top")});
+          $(".chopper").animate({left:newLeft, top: $(".chopper").css("top")}, 50);
           $(".chopper").removeClass('mirror');
           break;
 
         case 38: // up
           var newTop = parseInt($(".chopper").css("top")) - 10;
-          $(".chopper").css({left:$(".chopper").css("left"), top: newTop});
+          $(".chopper").animate({left:$(".chopper").css("left"), top: newTop}, 50);
           break;
 
         case 39: // right
           var newLeft = parseInt($(".chopper").css("left")) + 30;
-          $(".chopper").css({left:newLeft, top: $(".chopper").css("top")});
+          $(".chopper").animate({left:newLeft, top: $(".chopper").css("top")}, 50);
           $(".chopper").addClass('mirror');
           break;
 
         case 40: // down
           if (parseInt($(".chopper").css("top")) < 160) {
             var newTop = parseInt($(".chopper").css("top")) + 10;
-            $(".chopper").css({left:$(".chopper").css("left"), top: newTop});
+            $(".chopper").animate({left:$(".chopper").css("left"), top: newTop}, 50);
           }
           break;
 
