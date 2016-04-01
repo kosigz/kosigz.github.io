@@ -1,0 +1,225 @@
+<html>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+}
+
+
+.body {
+  height:100%;
+  vertical-align: center;
+  background-image: url('background.png');
+  background-position: center top;
+  background-size: auto 100%;
+  overflow-x:hidden;
+  overflow-y:hidden;
+}
+
+.quote {
+  font-family: 'Cabin Sketch', cursive;
+  font-size: 15px;
+  position: center;
+}
+
+.container {
+  width: 100%;
+  text-align: center;
+  position: fixed;
+  color: #000000;
+  bottom:20px;
+}
+
+.portrait {
+  text-align: center;
+  position: relative;
+  top:50px;
+  height: 25%;
+}
+
+.img-circle {
+}
+
+.header {
+  position: relative;
+  top: 25px;
+  width: 100%;
+  text-align: center;
+  font-family: 'Cabin Sketch', cursive;
+  font-size: 50px;
+}
+
+.introduction {
+  position: relative;
+  width: 100%;
+  text-align: center;
+  font-family: 'Cabin Sketch', cursive;
+  font-size: 20px;
+  color: black;
+}
+
+.mirror {
+     -moz-transform: scale(-1, 1);
+     -webkit-transform: scale(-1, 1);
+     transform: scale(-1, 1);
+  }
+
+.about {
+  width: 100%;
+  text-align: center;
+  font-family: 'Cabin Sketch', cursive;
+  font-size: 20px;
+  color: black;
+}
+
+.fa-facebook-square:hover {
+  color: #45619b;
+}
+
+#footer-padding {
+  height:10px;
+}
+
+.cloud-1 {
+  top:100px;
+  left:150px;
+  position: absolute;
+}
+
+.cloud-2 {
+  top:100px;
+  left:150px;
+  position: absolute;
+}
+
+
+.fa-twitter:hover {
+  color: #1d8eee;
+}
+
+.fa-instagram:hover {
+  color: #053666;
+}
+
+.fa-github-alt:hover {
+  color: #442b68;
+}
+
+.fa-linkedin:hover {
+  color: #1971ae;
+}
+
+.chopper {
+  position: absolute;
+  left: 75%;
+  top: 0px;
+  }
+
+</style>
+
+<link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+<link href='https://fonts.googleapis.com/css?family=Cabin+Sketch' rel='stylesheet' type='text/css'>
+
+<div class="body">
+
+    <div class="portrait">
+      <img class="img-circle" src="kosi.jpg" height=80%>
+    </div>
+
+  <br><br><br>
+
+  <!-- <img class="cloud-1" src="cloud.png" height=100px> -->
+  <!-- <img class="cloud-2" src="cloud.png" height=125px> -->
+
+  <div class="header">
+    <div class="introduction">
+    Hello, my name is
+    </div>
+    Konstantin Gizdarski
+    <img class="chopper" src="helicopter.gif" height=80px>
+
+  </div>
+
+  <br><br><br>
+
+  <div class="about">
+    Teaching Fellow, Undergraduate at Northeastern.<br>
+    Engineering Intern at Facebook.<br>
+    Enjoy snowboarding, traveling, and writing.<br>
+    <a href="http://www.kosigz.svbtle.com">Read about my thoughts.</a>
+  </div>
+
+  <br><br>
+  <div class="container">
+      <i class="fa fa-github-alt fa-3x"></i>&nbsp;&nbsp;
+      <i class="fa fa-instagram fa-3x"></i>&nbsp;&nbsp;
+      <i class="fa fa-twitter fa-3x"></i></i>&nbsp;&nbsp;
+      <i class="fa fa-linkedin fa-3x"></i>
+
+
+
+      <div id="footer-padding"></div>
+      <div class="quote"></div>
+    </div>
+  </div>
+
+  <script   src="https://code.jquery.com/jquery-2.2.2.min.js"   integrity="sha256-36cp2Co+/62rEAAYHLmRCPIych47CvdM+uTBJwSzWjI="   crossorigin="anonymous"></script>
+
+  <script>
+  var quotes = [
+    "\"The sun doesn't go down. It's just an illusion caused by the world spinning 'round.\"",
+    "\"A little bit of slope makes up for a lot of Y intercept.\"",
+    "\"As you are now, so once was I. As I am now, so you must be.\"",
+    "\"Do not fear failure. Not failure, but low aim, is the crime. In great attempts it is glorious even to fail.\"",
+    "\"Climb the mountain not to plant your flag, but to embrace the challenge, enjoy the air and behold the view.\"",
+    "\"I just want to sleep on the beach.\""
+  ]
+
+  $(document).keydown(function(e) {
+    switch(e.which) {
+        case 37: // left
+          var newLeft = parseInt($(".chopper").css("left")) - 30;
+          $(".chopper").css({left:newLeft, top: $(".chopper").css("top")});
+          $(".chopper").removeClass('mirror');
+          break;
+
+        case 38: // up
+          var newTop = parseInt($(".chopper").css("top")) - 10;
+          $(".chopper").css({left:$(".chopper").css("left"), top: newTop});
+          break;
+
+        case 39: // right
+          var newLeft = parseInt($(".chopper").css("left")) + 30;
+          $(".chopper").css({left:newLeft, top: $(".chopper").css("top")});
+          $(".chopper").addClass('mirror');
+          break;
+
+        case 40: // down
+          if (parseInt($(".chopper").css("top")) < 160) {
+            var newTop = parseInt($(".chopper").css("top")) + 10;
+            $(".chopper").css({left:$(".chopper").css("left"), top: newTop});
+          }
+          break;
+
+        default: return; // exit this handler for other keys
+    }
+    e.preventDefault(); // prevent the default action (scroll / move caret)
+  });
+
+  $(document).ready(function() {
+      function loop() {
+        $('.quote').empty();
+        var quote = quotes[Math.floor(Math.random() * quotes.length)]
+        $('.quote').append(quote)
+        $('.cloud-1').css({left:-150, top: Math.floor((Math.random() * 300) + 100)});
+        $('.cloud-2').css({left:-150, top: Math.floor((Math.random() * 400))});
+        $(".cloud-2").animate({left: "+=" + parseInt($(window).width() + 200)}, Math.floor((Math.random() * 10000) + 2500));
+        $(".cloud-1").animate({left: "+=" + parseInt($(window).width() + 200)}, Math.floor((Math.random() * 15000) + 2500), function() {
+          loop();
+        });
+      }
+      loop();
+  });
+  </script>
+
+</html>
