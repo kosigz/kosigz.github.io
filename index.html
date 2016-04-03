@@ -5,7 +5,6 @@
   padding: 0;
 }
 
-
 .body {
   height:100%;
   vertical-align: center;
@@ -41,7 +40,10 @@
   height: 25%;
 }
 
-.img-circle {
+/* Create the animation blocks */
+@keyframes spin {
+	from { transform: rotate(0deg); }
+	to { transform: rotate(360deg); }
 }
 
 .header {
@@ -120,7 +122,7 @@
 .chopper {
   position: absolute;
   left: 75%;
-  top: 0px;
+  top: -75px;
   }
 
 </style>
@@ -130,9 +132,9 @@
 
 <div class="body">
 
-    <div class="portrait">
-      <img class="img-circle" src="kosi.jpg" height=80%>
-    </div>
+  <div class="portrait">
+    <img class="img-circle" src="kosi.jpg" height=80%>
+  </div>
 
   <br><br><br>
 
@@ -145,7 +147,6 @@
     </div>
     Konstantin Gizdarski
     <img class="chopper" src="helicopter.gif" height=80px>
-
   </div>
 
   <br><br><br>
@@ -160,12 +161,11 @@
   <br><br>
   <div class="container">
       <div id="footer-upper-padding"></div>
+
       <i class="fa fa-github-alt fa-3x"></i>&nbsp;&nbsp;
       <i class="fa fa-instagram fa-3x"></i>&nbsp;&nbsp;
       <i class="fa fa-twitter fa-3x"></i></i>&nbsp;&nbsp;
       <i class="fa fa-linkedin fa-3x"></i>
-
-
 
       <div id="footer-padding"></div>
       <div class="quote"></div>
@@ -181,8 +181,21 @@
     "\"As you are now, so once was I. As I am now, so you must be.\"",
     "\"Do not fear failure. Not failure, but low aim, is the crime. In great attempts it is glorious even to fail.\"",
     "\"Climb the mountain not to plant your flag, but to embrace the challenge, enjoy the air and behold the view.\"",
-    "\"I just want to sleep on the beach.\"",
-    "\"People who write complicated programs aren't smarter than you. They know something you don't about dealing with complexity.\""
+    "\"People who develop complex programs aren't smarter than you. They know something you don't about dealing with complexity.\"",
+    "\"I can never be as pretty as you imagine. And I would never do something like that to you. Isn't it better to imagine?\"",
+    "\"Our lives are not our own. We are bound to others, past and present, and by each crime and every kindness, we birth our future.\"",
+    "\"That's one of the remarkable things about life. It's never so bad that it can't get worse.\"",
+    "I climb rocks and trees.",
+    "I have had milk tea in over ten countries. You count on finding me at a milk tea shop. Ask for suggestions.",
+    "I can play the acoustic guitar. Somewhat.",
+    "Love meeting new people. Feel free to drop a line.",
+    "What is humour, anyway?",
+    "I love going to musicals. My favorite is Legally Blonde.",
+    "I would rather be sleeping on the beach.",
+    "Always ready to argue the superiority of spaces over tabs.",
+    "Graphs are my favorite data structure.",
+    "Believes that Docker and continuous deployment are beautiful inventions.",
+    "I am interested in neural networks and applied machine learning."
   ]
 
   $(document).keydown(function(e) {
@@ -217,18 +230,22 @@
   });
 
   $(document).ready(function() {
-      function loop() {
-        $('.quote').empty();
-        var quote = quotes[Math.floor(Math.random() * quotes.length)]
-        $('.quote').append(quote)
-        $('.cloud-1').css({left:-150, top: Math.floor((Math.random() * 300) + 100)});
-        $('.cloud-2').css({left:-150, top: Math.floor((Math.random() * 400))});
-        $(".cloud-2").animate({left: "+=" + parseInt($(window).width() + 200)}, Math.floor((Math.random() * 10000) + 2500));
-        $(".cloud-1").animate({left: "+=" + parseInt($(window).width() + 200)}, Math.floor((Math.random() * 15000) + 2500), function() {
-          loop();
+      function loop(epoch) {
+        if (epoch % 100 == 0) {
+          $('.quote').empty();
+          var quote = quotes[Math.floor(Math.random() * quotes.length)]
+          $('.quote').append(quote);
+        }
+        epoch++;
+        var xShift = Math.round(2 * Math.random()) - 1;
+        var yShift = Math.round(2 * Math.random()) - 1;
+        console.log(xShift);
+        console.log(yShift);
+        $('.chopper').animate({left:"+=" + yShift, top: "+=" + xShift}, 50, function() {
+          loop(epoch);
         });
       }
-      loop();
+      loop(0);
   });
   </script>
 
