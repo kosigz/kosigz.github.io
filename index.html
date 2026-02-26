@@ -1,248 +1,472 @@
-<html>
-<style>
-* {
-  margin: 0;
-  padding: 0;
-}
-
-.body {
-  height:100%;
-  vertical-align: center;
-  background-image: url('justsky.png');
-  background-position: center top;
-  background-size: auto 100%;
-  overflow-x:hidden;
-  overflow-y: scroll;
-}
-
-.quote {
-  font-family: 'Cabin Sketch', cursive;
-  font-size: 15px;
-  position: center;
-  bottom: -25px;
-}
-
-.container {
-  background-image: url('dock.png');
-  background-size: auto 100%;
-  height: 25%;
-  width: 100%;
-  text-align: center;
-  position: fixed;
-  color: #000000;
-  bottom:0;
-}
-
-.portrait {
-  text-align: center;
-  position: relative;
-  top:50px;
-  height: 25%;
-}
-
-/* Create the animation blocks */
-@keyframes spin {
-	from { transform: rotate(0deg); }
-	to { transform: rotate(360deg); }
-}
-
-.header {
-  position: relative;
-  top: 25px;
-  width: 100%;
-  text-align: center;
-  font-family: 'Cabin Sketch', cursive;
-  font-size: 50px;
-}
-
-.introduction {
-  position: relative;
-  width: 100%;
-  text-align: center;
-  font-family: 'Cabin Sketch', cursive;
-  font-size: 20px;
-  color: black;
-}
-
-.mirror {
-     -moz-transform: scale(-1, 1);
-     -webkit-transform: scale(-1, 1);
-     transform: scale(-1, 1);
-  }
-
-.about {
-  width: 100%;
-  text-align: center;
-  font-family: 'Cabin Sketch', cursive;
-  font-size: 20px;
-  color: black;
-}
-
-.fa-facebook-square:hover {
-  color: #45619b;
-}
-
-#footer-padding {
-  height:10px;
-}
-
-#footer-upper-padding {
-  height:40%;
-}
-
-.cloud-1 {
-  top:100px;
-  left:150px;
-  position: absolute;
-}
-
-.cloud-2 {
-  top:100px;
-  left:150px;
-  position: absolute;
-}
-
-
-.fa-twitter:hover {
-  color: #1d8eee;
-}
-
-.fa-instagram:hover {
-  color: #053666;
-}
-
-.fa-github-alt:hover {
-  color: #442b68;
-}
-
-.fa-linkedin:hover {
-  color: #1971ae;
-}
-
-.chopper {
-  position: absolute;
-  left: 75%;
-  top: -75px;
-  }
-
-</style>
-
-<link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
-<link href='https://fonts.googleapis.com/css?family=Cabin+Sketch' rel='stylesheet' type='text/css'>
-
+<!DOCTYPE html>
+<html lang="en">
 <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Hello | Konstantin</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body { height: 100%; }
+
+    body {
+      min-height: 100vh;
+      overflow-x: hidden;
+      overflow-y: scroll;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url('justsky.png');
+      background-size: cover;
+      background-position: center top;
+      z-index: -1;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0);    }
+    }
+
+    .wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px 240px;
+      gap: 20px;
+    }
+
+    /* Portrait */
+    .portrait { animation: fadeUp 0.7s ease both; }
+
+    .portrait img {
+      height: 160px;
+      display: block;
+      transition: transform 0.3s ease;
+    }
+
+    .portrait img:hover { transform: scale(1.05); }
+
+    /* Header */
+    .header {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      animation: fadeUp 0.7s ease 0.15s both;
+    }
+
+    .introduction {
+      font-family: 'Cabin Sketch', cursive;
+      font-size: 18px;
+      color: rgba(20, 20, 20, 0.7);
+    }
+
+    .name {
+      font-family: 'Cabin Sketch', cursive;
+      font-size: 48px;
+      color: #1a1a1a;
+      line-height: 1.15;
+    }
+
+    /* ─── Cloud card ─────────────────────────────────────────────────── */
+
+    .card-outer {
+      position: relative;
+      max-width: 520px;
+      width: 100%;
+      /* top margin gives room for bumps that poke above */
+      margin-top: 55px;
+      animation: fadeUp 0.7s ease 0.3s both;
+    }
+
+    /*
+      Cloud background: children compose as solid white first, then
+      opacity:0.32 on the parent makes the whole shape semi-transparent.
+      This avoids double-opacity seams at overlaps.
+      drop-shadow follows the merged cloud outline.
+    */
+    .cloud-bg {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: -55px;
+      bottom: 0;
+      pointer-events: none;
+      opacity: 0.32;
+      filter: drop-shadow(0 0 4px rgba(255,255,255,0.9)) drop-shadow(0 6px 20px rgba(0,0,0,0.12));
+    }
+
+    /* Flat card body */
+    .cloud-body {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 55px;
+      bottom: 0;
+      background: white;
+      border-radius: 20px;
+    }
+
+    /*
+      Bumps overlap the cloud-body top AND each other so they read
+      as one continuous cloud silhouette (no gaps between shapes).
+    */
+    .bump {
+      position: absolute;
+      background: white;
+      border-radius: 50%;
+    }
+
+    /* left bump — right edge reaches b2's left edge */
+    .b1 {
+      left: 10px;
+      top: 18px;
+      width: 155px;
+      height: 130px;
+    }
+
+    /* center bump — tallest */
+    .b2 {
+      left: calc(50% - 90px);
+      top: 0px;
+      width: 180px;
+      height: 155px;
+    }
+
+    /* right bump — left edge meets b2's right edge */
+    .b3 {
+      right: 10px;
+      top: 20px;
+      width: 150px;
+      height: 125px;
+    }
+
+    /* Card text sits above the cloud-bg in z-order */
+    .card {
+      position: relative;
+      z-index: 1;
+      padding: 26px 40px 28px;
+      text-align: center;
+    }
+
+    .card p {
+      font-family: 'Cabin Sketch', cursive;
+      font-size: 17px;
+      line-height: 1.8;
+      color: rgba(15, 15, 15, 0.85);
+    }
+
+    .card a {
+      color: #1a1a1a;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      transition: opacity 0.2s;
+    }
+
+    .card a:hover { opacity: 0.55; }
+
+    .blog-link {
+      display: inline-block;
+      margin-top: 16px;
+      font-family: 'Cabin Sketch', cursive;
+      font-size: 16px;
+      color: #1a1a1a;
+      text-decoration: none;
+      border-bottom: 2px solid rgba(0,0,0,0.25);
+      padding-bottom: 2px;
+      transition: border-color 0.2s, opacity 0.2s;
+    }
+
+    .blog-link:hover {
+      border-color: rgba(0,0,0,0.65);
+      opacity: 0.65;
+    }
+
+    /* ─── Helicopter ─────────────────────────────────────────────────── */
+
+    .chopper {
+      position: absolute;
+      left: 105%;
+      top: -50px;
+    }
+
+    .mirror { transform: scale(-1, 1); }
+
+    /* ─── Dock footer ────────────────────────────────────────────────── */
+
+    .footer {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      height: 220px;
+      background-image: url('dock.png');
+      background-size: cover;
+      background-position: top center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      padding-bottom: 52px;
+      animation: fadeUp 0.7s ease 0.45s both;
+    }
+
+    /* Individual colorful stones — each icon lives in its own pebble */
+    .footer-icons {
+      display: flex;
+      align-items: flex-end;
+      gap: 12px;
+    }
+
+    .footer-icons a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      color: white;
+      width: 52px;
+      height: 48px;
+      transition: transform 0.2s ease, filter 0.2s ease;
+      filter: drop-shadow(0 3px 6px rgba(0,0,0,0.25));
+    }
+
+    .footer-icons a:hover {
+      transform: translateY(-5px) scale(1.12);
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,0.3)) brightness(1.15);
+    }
+
+    /* Unique organic pebble shapes — same color, different stone outlines */
+    .stone-github    { background: #7ab648; border-radius: 60% 40% 55% 45% / 50% 60% 40% 55%; }
+    .stone-instagram { background: #7ab648; border-radius: 45% 55% 40% 60% / 60% 40% 55% 45%; width: 56px; height: 52px; }
+    .stone-twitter   { background: #7ab648; border-radius: 55% 45% 60% 40% / 45% 55% 50% 50%; width: 50px; height: 46px; }
+    .stone-linkedin  { background: #7ab648; border-radius: 40% 60% 45% 55% / 55% 45% 60% 40%; }
+
+    .quote {
+      font-family: 'Cabin Sketch', cursive;
+      font-size: 13px;
+      color: rgba(20, 20, 20, 0.5);
+      margin-top: 10px;
+      padding: 0 24px;
+      min-height: 1.4em;
+    }
+
+    /* ─── Sky time-of-day overlay ─────────────────────────────────────── */
+
+    #sky-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background-color: transparent;
+      transition: background-color 3s ease;
+      -webkit-mask-image: linear-gradient(to bottom, transparent 55%, black 100%);
+      mask-image: linear-gradient(to bottom, transparent 55%, black 100%);
+    }
+
+    #starfield {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 5s ease;
+    }
+
+    #starfield .star-dot {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      top: 0;
+      left: 0;
+      background: transparent;
+    }
+  </style>
 </head>
+<body>
 
-<div class="body">
+  <div id="sky-overlay"></div>
+  <div id="starfield"><div class="star-dot"></div></div>
 
-  <div class="portrait">
-    <img class="img-circle" src="kosi.jpg" height=80%>
-  </div>
+  <div class="wrapper">
 
-  <br><br><br>
-
-  <!-- <img class="cloud-1" src="cloud.png" height=100px> -->
-  <!-- <img class="cloud-2" src="cloud.png" height=125px> -->
-
-  <div class="header">
-    <div class="introduction">
-    Hello, my name is
+    <div class="portrait">
+      <img src="kosi.jpg" alt="Konstantin">
     </div>
-    Konstantin Gizdarski
-    <img class="chopper" src="helicopter.gif" height=80px>
-  </div>
 
-  <br><br><br>
-
-  <div class="about">
-    I am a Bulgarian boy who has been living in the Silicon Valley for over 20 years.<br>
-    During the day, I work on <a href="https://www.linkedin.com/in/gizdarski/">ML Infrastructure</a>.<br>
-    Outside of work, I try to make good use of my time, and chase my gradients of interest every week.<br>
-    <br>
-    <a href="https://kosigz.svbtle.com/">Collection of thoughts.</a>
-  </div>
-
-  <br><br>
-  <div class="container">
-      <div id="footer-upper-padding"></div>
-
-      <i class="fa fa-github-alt fa-3x"></i>&nbsp;&nbsp;
-      <i class="fa fa-instagram fa-3x"></i>&nbsp;&nbsp;
-      <i class="fa fa-twitter fa-3x"></i></i>&nbsp;&nbsp;
-      <i class="fa fa-linkedin fa-3x"></i>
-
-      <div id="footer-padding"></div>
-      <div class="quote"></div>
+    <div class="header">
+      <div class="introduction">Hello, my name is</div>
+      <div class="name">Konstantin Gizdarski</div>
+      <img class="chopper" src="helicopter.gif" height="80" alt="helicopter">
     </div>
+
+    <div class="card-outer">
+      <!-- Gooey cloud background: white shapes blur+contrast-merged into one cloud silhouette -->
+      <div class="cloud-bg">
+        <div class="cloud-body"></div>
+        <div class="bump b1"></div>
+        <div class="bump b2"></div>
+        <div class="bump b3"></div>
+      </div>
+
+      <!-- Text sits above the cloud in z-order -->
+      <div class="card">
+        <p>
+          I am a Bulgarian boy who has been living in the Silicon Valley for over 20 years.<br>
+          During the day, I work on <a href="https://www.linkedin.com/in/gizdarski/">AI & ML Systems</a>.<br>
+          Outside of work, I try to make good use of my time, and chase my gradients of interest every week.
+        </p>
+        <a class="blog-link" href="https://kosigz.svbtle.com/">Collection of thoughts.</a>
+      </div>
+    </div>
+
   </div>
 
-  <script   src="https://code.jquery.com/jquery-2.2.2.min.js"   integrity="sha256-36cp2Co+/62rEAAYHLmRCPIych47CvdM+uTBJwSzWjI="   crossorigin="anonymous"></script>
+  <div class="footer">
+    <div class="footer-icons">
+      <a href="https://github.com/kosigz" target="_blank" rel="noopener" class="stone-github"><i class="fa-brands fa-github fa-lg"></i></a>
+      <a href="https://instagram.com/kosigz" target="_blank" rel="noopener" class="stone-instagram"><i class="fa-brands fa-instagram fa-lg"></i></a>
+      <a href="https://twitter.com/kosigz" target="_blank" rel="noopener" class="stone-twitter"><i class="fa-brands fa-twitter fa-lg"></i></a>
+      <a href="https://linkedin.com/in/gizdarski" target="_blank" rel="noopener" class="stone-linkedin"><i class="fa-brands fa-linkedin fa-lg"></i></a>
+    </div>
+    <div class="quote"></div>
+  </div>
 
   <script>
-  var quotes = [
-    "\"A little bit of slope makes up for a lot of Y intercept.\"",
-    "\"As you are now, so once was I. As I am now, so you must be.\"",
-    "\"Do not fear failure. Not failure, but low aim, is the crime. In great attempts it is glorious even to fail.\"",
-    "\"Climb the mountain not to plant your flag, but to embrace the challenge, enjoy the air and behold the view.\"",
-    "\"People who develop complex programs aren't smarter than you. They know something you don't about dealing with complexity.\"",
-    "\"Our lives are not our own. We are bound to others, past and present, and by each crime and every kindness, we birth our future.\"",
-    "\"That's one of the remarkable things about life. It's never so bad that it can't get worse.\"",
-    "Love meeting new people. Feel free to drop a line.",
-    "What is humour, anyway?",
-    "I would rather be sleeping on the beach.",
-    "Graphs are my favorite data structure.",
-  ]
+    const quotes = [
+      '"A little bit of slope makes up for a lot of Y intercept."',
+      '"As you are now, so once was I. As I am now, so you must be."',
+      '"Do not fear failure. Not failure, but low aim, is the crime. In great attempts it is glorious even to fail."',
+      '"Climb the mountain not to plant your flag, but to embrace the challenge, enjoy the air and behold the view."',
+      '"People who develop complex programs aren\'t smarter than you. They know something you don\'t about dealing with complexity."',
+      '"Our lives are not our own. We are bound to others, past and present, and by each crime and every kindness, we birth our future."',
+      '"That\'s one of the remarkable things about life. It\'s never so bad that it can\'t get worse."',
+      'Love meeting new people. Feel free to drop a line.',
+      'What is humour, anyway?',
+      'I would rather be sleeping on the beach.',
+      'Graphs are my favorite data structure.',
+    ];
 
-  $(document).keydown(function(e) {
-    switch(e.which) {
-        case 37: // left
-          var newLeft = parseInt($(".chopper").css("left")) - 30;
-          $(".chopper").animate({left:newLeft, top: $(".chopper").css("top")}, 50);
-          $(".chopper").removeClass('mirror');
+    const chopper = document.querySelector('.chopper');
+    const quoteEl  = document.querySelector('.quote');
+
+    document.addEventListener('keydown', function(e) {
+      const left = parseFloat(chopper.style.left);
+      const top  = parseFloat(chopper.style.top);
+      switch (e.key) {
+        case 'ArrowLeft':
+          chopper.style.left = (left - 30) + 'px';
+          chopper.classList.remove('mirror');
           break;
-
-        case 38: // up
-          var newTop = parseInt($(".chopper").css("top")) - 10;
-          $(".chopper").animate({left:$(".chopper").css("left"), top: newTop}, 50);
+        case 'ArrowRight':
+          chopper.style.left = (left + 30) + 'px';
+          chopper.classList.add('mirror');
           break;
-
-        case 39: // right
-          var newLeft = parseInt($(".chopper").css("left")) + 30;
-          $(".chopper").animate({left:newLeft, top: $(".chopper").css("top")}, 50);
-          $(".chopper").addClass('mirror');
+        case 'ArrowUp':
+          chopper.style.top = (top - 10) + 'px';
           break;
-
-        case 40: // down
-          if (parseInt($(".chopper").css("top")) < 160) {
-            var newTop = parseInt($(".chopper").css("top")) + 10;
-            $(".chopper").animate({left:$(".chopper").css("left"), top: newTop}, 50);
-          }
+        case 'ArrowDown':
+          if (top < 160) chopper.style.top = (top + 10) + 'px';
           break;
-
-        default: return; // exit this handler for other keys
-    }
-    e.preventDefault(); // prevent the default action (scroll / move caret)
-  });
-
-  $(document).ready(function() {
-      function loop(epoch) {
-        if (epoch % 100 == 0) {
-          $('.quote').empty();
-          var quote = quotes[Math.floor(Math.random() * quotes.length)]
-          $('.quote').append(quote);
-        }
-        epoch++;
-        var xShift = Math.round(2 * Math.random()) - 1;
-        var yShift = Math.round(2 * Math.random()) - 1;
-        console.log(xShift);
-        console.log(yShift);
-        $('.chopper').animate({left:"+=" + yShift, top: "+=" + xShift}, 50, function() {
-          loop(epoch);
-        });
+        default: return;
       }
+      e.preventDefault();
+    });
+
+    function loop(epoch) {
+      if (epoch % 100 === 0) {
+        quoteEl.textContent = quotes[Math.floor(Math.random() * quotes.length)];
+      }
+      const xShift = Math.round(2 * Math.random()) - 1;
+      const yShift = Math.round(2 * Math.random()) - 1;
+      chopper.style.left = (parseFloat(chopper.style.left) + yShift) + 'px';
+      chopper.style.top  = (parseFloat(chopper.style.top)  + xShift) + 'px';
+      setTimeout(() => loop(epoch + 1), 50);
+    }
+
+    window.addEventListener('load', function() {
+      const computed = getComputedStyle(chopper);
+      chopper.style.left = computed.left;
+      chopper.style.top  = computed.top;
       loop(0);
-  });
+
+      // Key out white background from pencil sketch portrait
+      const img = document.querySelector('.portrait img');
+      function keyWhite(el) {
+        const canvas = document.createElement('canvas');
+        canvas.width  = el.naturalWidth;
+        canvas.height = el.naturalHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(el, 0, 0);
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const d = imgData.data;
+        const threshold = 235; // only near-white pixels become transparent
+        for (let i = 0; i < d.length; i += 4) {
+          const brightness = d[i] * 0.299 + d[i+1] * 0.587 + d[i+2] * 0.114;
+          if (brightness >= threshold) {
+            // Map [threshold..255] → [255..0] alpha
+            d[i+3] = Math.round((255 - brightness) * 255 / (255 - threshold));
+          } else {
+            d[i+3] = 255; // fully opaque — preserve all sketch detail
+          }
+        }
+        ctx.putImageData(imgData, 0, 0);
+        el.src = canvas.toDataURL('image/png');
+      }
+      if (img.complete && img.naturalWidth) { keyWhite(img); }
+      else { img.addEventListener('load', () => keyWhite(img)); }
+    });
+
+    // ── Sky time-of-day ──────────────────────────────────────────────────
+    (function() {
+      const overlay   = document.getElementById('sky-overlay');
+      const starfield = document.getElementById('starfield');
+      const dot       = starfield.querySelector('.star-dot');
+
+      // Build starfield once using box-shadow
+      const shadows = [];
+      for (let i = 0; i < 180; i++) {
+        const x     = Math.random() * window.innerWidth;
+        const y     = Math.random() * window.innerHeight * 0.80;
+        const size  = Math.random() < 0.85 ? 1 : 2;
+        const alpha = (0.45 + Math.random() * 0.55).toFixed(2);
+        shadows.push(`${x.toFixed(0)}px ${y.toFixed(0)}px 0 ${size}px rgba(255,255,255,${alpha})`);
+      }
+      dot.style.boxShadow = shadows.join(',');
+
+      function applyHour(h) {
+        let color, stars;
+        if      (h <  5.0) { color = 'rgba(4, 7, 32, 0.88)';       stars = 1.0; }  // deep night
+        else if (h <  6.5) { color = 'rgba(55, 12, 85, 0.78)';    stars = 0.5; }  // pre-dawn — deep violet
+        else if (h <  8.0) { color = 'rgba(230, 75, 15, 0.82)';   stars = 0.0; }  // sunrise — blazing orange
+        else if (h < 17.0) { color = 'rgba(0, 0, 0, 0)';          stars = 0.0; }  // daytime
+        else if (h < 18.5) { color = 'rgba(255, 115, 0, 0.78)';   stars = 0.0; }  // golden hour — rich amber
+        else if (h < 20.0) { color = 'rgba(185, 25, 55, 0.85)';   stars = 0.0; }  // sunset — deep magenta-crimson
+        else if (h < 21.5) { color = 'rgba(35, 10, 65, 0.72)';    stars = 0.4; }  // dusk — dark purple
+        else               { color = 'rgba(4, 7, 32, 0.85)';      stars = 0.95; } // night
+        overlay.style.backgroundColor = color;
+        starfield.style.opacity       = stars;
+      }
+
+      // Cycle continuously through all states, looping forever
+      const demoHours = [2, 6, 7.5, 12, 17.5, 19, 21, 23];
+      let idx = 0;
+
+      function demoStep() {
+        applyHour(demoHours[idx % demoHours.length]);
+        idx++;
+        setTimeout(demoStep, 4000);
+      }
+
+      demoStep();
+    })();
   </script>
 
+</body>
 </html>
