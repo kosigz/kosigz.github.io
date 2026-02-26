@@ -125,6 +125,39 @@
       opacity: 0.65;
     }
 
+    /* ─── Mobile ─────────────────────────────────────────────────────── */
+
+    @media (max-width: 600px) {
+      .wrapper {
+        padding: 20px 16px 200px;
+        gap: 12px;
+      }
+      .portrait img {
+        height: 110px;
+      }
+      .introduction {
+        font-size: 15px;
+      }
+      .name {
+        font-size: 34px;
+      }
+      .card {
+        padding: 18px 20px 20px;
+      }
+      .card p {
+        font-size: 14px;
+        line-height: 1.65;
+      }
+      .blog-link {
+        font-size: 14px;
+        margin-top: 12px;
+      }
+      .footer {
+        height: 180px;
+        padding-bottom: 40px;
+      }
+    }
+
     /* ─── Helicopter ─────────────────────────────────────────────────── */
 
     .chopper {
@@ -282,6 +315,17 @@
     const chopper = document.querySelector('.chopper');
     const quoteEl  = document.querySelector('.quote');
 
+    const vehicles = [
+      '<img src="helicopter.gif" height="80" alt="helicopter">',
+      '<span>🛸</span>',
+      '<span>🚀</span>',
+      '<span>🧹</span>',
+      '<span>🐄</span>',
+      '<span>🦅</span>',
+      '<span>🎅</span>',
+    ];
+    let vehicleIdx = 0;
+
     document.addEventListener('keydown', function(e) {
       const left = parseFloat(chopper.style.left);
       const top  = parseFloat(chopper.style.top);
@@ -299,6 +343,10 @@
           break;
         case 'ArrowDown':
           if (top < 160) chopper.style.top = (top + 10) + 'px';
+          break;
+        case 'e':
+          vehicleIdx = (vehicleIdx + 1) % vehicles.length;
+          chopper.innerHTML = vehicles[vehicleIdx];
           break;
         default: return;
       }
