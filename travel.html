@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Konstantin's Travel Tracker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      height: 100%;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url('justsky.png');
+      background-size: cover;
+      background-position: center top;
+      z-index: -2;
+    }
+
+    #sky-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background-color: transparent;
+      transition: background-color 3s ease;
+      -webkit-mask-image: linear-gradient(to bottom, transparent 55%, black 100%);
+      mask-image: linear-gradient(to bottom, transparent 55%, black 100%);
+    }
+
+    .page {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 20px 28px;
+      overflow: hidden;
+    }
+
+    .back-link {
+      color: rgba(20, 20, 20, 0.65);
+      text-decoration: none;
+      font-family: 'Cabin Sketch', cursive;
+      font-size: 15px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: opacity 0.2s;
+    }
+
+    .back-link:hover { opacity: 0.5; }
+
+    h1 {
+      font-family: 'Cabin Sketch', cursive;
+      font-size: 32px;
+      color: #1a1a1a;
+      line-height: 1.1;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    .content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      width: 100%;
+      max-width: 820px;
+      align-self: center;
+      flex: 1;
+    }
+
+    .text-card {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.32);
+      border-radius: 20px;
+      filter: drop-shadow(0 6px 20px rgba(0,0,0,0.12));
+      padding: 16px 24px;
+    }
+
+    .text-card p {
+      font-family: 'Cabin Sketch', cursive;
+      font-size: 14px;
+      line-height: 1.7;
+      color: rgba(15, 15, 15, 0.85);
+    }
+
+    .count {
+      font-family: 'Cabin Sketch', cursive;
+      font-size: 13px;
+      color: rgba(20, 20, 20, 0.5);
+      text-align: center;
+      margin-top: 12px;
+    }
+
+    .map-card {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.32);
+      border-radius: 20px;
+      padding: 14px;
+      filter: drop-shadow(0 6px 20px rgba(0,0,0,0.12));
+    }
+
+    @media (max-width: 700px) {
+      .content { grid-template-columns: 1fr; }
+      h1 { font-size: 32px; }
+    }
+
+    #map svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .country {
+      fill: rgba(180, 180, 180, 0.35);
+      stroke: rgba(255, 255, 255, 0.6);
+      stroke-width: 0.4;
+      transition: fill 0.2s;
+    }
+
+    .country.visited {
+      fill: #7ab648;
+      cursor: pointer;
+    }
+
+    .country.visited:hover {
+      fill: #91d456;
+    }
+
+    .graticule {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.15);
+      stroke-width: 0.3;
+    }
+
+    .sphere {
+      fill: rgba(100, 160, 220, 0.15);
+    }
+
+    .count {
+      font-family: 'Cabin Sketch', cursive;
+      font-size: 14px;
+      color: rgba(20, 20, 20, 0.5);
+      text-align: center;
+      margin-top: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="sky-overlay"></div>
+
+  <div class="page">
+    <a href="index.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> back</a>
+
+    <h1>Konstantin's Travel Tracker</h1>
+
+    <div class="content">
+      <div class="text-card">
+          <p>For almost as long as I can remember, my life has spanned continents. I was born in Bulgaria, spent a year in Japan as a toddler, grew up in California, and became a student in Massachusetts. Today my immediate family is split between Bulgaria and California, with extended family spread across the US and Europe.</p>
+          <br>
+          <p>One thing that stuck with me from Northeastern is the school's stated mission to make students feel just as at home in Beijing and Cairo as in Boston. I think they succeeded at that for me. During undergrad, I studied abroad at Peking University and the London School of Economics. Those experiences shaped me into a confident world traveler. This page is a running catalogue of the countries I have been to.</p>
+      </div>
+
+      <div class="map-card">
+        <div id="map"></div>
+        <p class="count" id="count"></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/topojson@3/dist/topojson.min.js"></script>
+  <script>
+    // ISO 3166-1 numeric codes
+    const visited = new Set([
+      100,  // Bulgaria
+      840,  // USA
+      300,  // Greece
+      528,  // Netherlands
+      392,  // Japan
+      276,  // Germany
+      826,  // UK (England + Scotland)
+      156,  // China
+      410,  // South Korea
+      158,  // Taiwan
+      764,  // Thailand
+      608,  // Philippines
+      116,  // Cambodia
+      704,  // Vietnam
+      344,  // Hong Kong
+      702,  // Singapore
+      258,  // French Polynesia
+      250,  // France
+      484,  // Mexico
+      124,  // Canada
+      604,  // Peru
+      188,  // Costa Rica
+      380,  // Italy
+      724,  // Spain
+      620,  // Portugal
+      348,  // Hungary
+      203,  // Czech Republic
+      642,  // Romania
+       70,  // Bosnia & Herzegovina
+      688,  // Serbia
+      191,  // Croatia
+       40,  // Austria
+      703,  // Slovakia
+      792,  // Turkey
+      376,  // Israel
+      275,  // Palestine
+      818,  // Egypt
+      752,  // Sweden
+      336,  // Vatican City
+      756,  // Switzerland
+    ]);
+
+    const W = 960, H = 500;
+
+    const svg = d3.select('#map')
+      .append('svg')
+      .attr('viewBox', `0 0 ${W} ${H}`)
+      .attr('preserveAspectRatio', 'xMidYMid meet');
+
+    const projection = d3.geoNaturalEarth1()
+      .scale(153)
+      .translate([W / 2, H / 2]);
+
+    const path = d3.geoPath().projection(projection);
+
+    // Ocean fill
+    svg.append('path')
+      .datum({type: 'Sphere'})
+      .attr('class', 'sphere')
+      .attr('d', path);
+
+    // Graticule grid lines
+    svg.append('path')
+      .datum(d3.geoGraticule()())
+      .attr('class', 'graticule')
+      .attr('d', path);
+
+    fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
+      .then(r => r.json())
+      .then(world => {
+        const countries = topojson.feature(world, world.objects.countries);
+
+        svg.selectAll('.country')
+          .data(countries.features)
+          .enter()
+          .append('path')
+          .attr('class', d => `country${visited.has(+d.id) ? ' visited' : ''}`)
+          .attr('d', path);
+
+        const n = visited.size;
+        document.getElementById('count').textContent =
+          `As of February 2026, I have traveled to ${n} countries.`;
+      });
+
+    // Sky time-of-day overlay (same as main page)
+    (function() {
+      const overlay = document.getElementById('sky-overlay');
+      function applyHour(h) {
+        let color;
+        if      (h <  5.0) color = 'rgba(4, 7, 32, 0.88)';
+        else if (h <  6.5) color = 'rgba(55, 12, 85, 0.78)';
+        else if (h <  8.0) color = 'rgba(230, 75, 15, 0.82)';
+        else if (h < 17.0) color = 'rgba(0, 0, 0, 0)';
+        else if (h < 18.5) color = 'rgba(255, 115, 0, 0.78)';
+        else if (h < 20.0) color = 'rgba(185, 25, 55, 0.85)';
+        else if (h < 21.5) color = 'rgba(35, 10, 65, 0.72)';
+        else               color = 'rgba(4, 7, 32, 0.85)';
+        overlay.style.backgroundColor = color;
+      }
+      function applyTime() {
+        const now = new Date();
+        applyHour(now.getHours() + now.getMinutes() / 60);
+      }
+      applyTime();
+      setInterval(applyTime, 60 * 1000);
+    })();
+  </script>
+</body>
+</html>
