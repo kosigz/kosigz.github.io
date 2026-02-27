@@ -13,8 +13,6 @@
       box-sizing: border-box;
     }
 
-    html, body { height: 100%; }
-
     body {
       min-height: 100vh;
       overflow-x: hidden;
@@ -88,16 +86,18 @@
     }
 
     .card {
-      padding: 26px 40px 28px;
+      padding: 18px 28px 20px;
       text-align: center;
     }
 
     .card p {
       font-family: 'Cabin Sketch', cursive;
-      font-size: 17px;
-      line-height: 1.8;
+      font-size: 14px;
+      line-height: 1.6;
       color: rgba(15, 15, 15, 0.85);
     }
+
+    .card p + p { margin-top: 0.45em; }
 
     .card a {
       color: #1a1a1a;
@@ -115,20 +115,15 @@
       .chopper { display: none; }
       .quote   { display: none; }
 
-      body { overflow: hidden; }
-
       .footer {
         height: 160px;
         padding-bottom: 30px;
       }
 
       .wrapper {
-        height: calc(100dvh - 160px);
-        min-height: unset;
-        padding: 28px 20px;
+        min-height: calc(100dvh - 160px);
+        padding: 28px 20px 180px;
         gap: 12px;
-        justify-content: center;
-        overflow: hidden;
       }
       .portrait img {
         height: 100px;
@@ -339,11 +334,10 @@
 
     <div class="card-outer">
       <div class="card">
-        <p>
-          I am a Bulgarian boy living in the San Francisco Bay Area. During the day, I build large-scale <a href="https://www.linkedin.com/in/gizdarski/">AI & ML Systems</a> for fun and sustenance.<br>
-          Beyond that, I <a href="https://kosigz.svbtle.com/" target="_blank" rel="noopener">write</a>, ski, walk around with an iced coffee in hand, explore new places, and meme with my friends.<br>
-          <span style="color: #8c2d3a;">I am constantly searching for unique pairings and trying to figure out what happens next.</span>
-        </p>
+        <p>I am a Bulgarian boy who has called the <a href="https://en.wikipedia.org/wiki/San_Francisco_Bay_Area" target="_blank" rel="noopener">San Francisco Bay Area</a> home since 2002. By day, I build large-scale <a href="https://www.linkedin.com/in/gizdarski/" target="_blank" rel="noopener">AI & ML Systems at Lyft</a>.</p>
+        <p>I studied at <a href="https://www.northeastern.edu" target="_blank" rel="noopener">Northeastern University</a>, with exchanges at the <a href="https://www.lse.ac.uk" target="_blank" rel="noopener">London School of Economics</a> and <a href="https://english.pku.edu.cn" target="_blank" rel="noopener">Peking University</a>.</p>
+        <p>Beyond work, I <a href="https://kosigz.svbtle.com/" target="_blank" rel="noopener">write</a>, ski, wander new and old places with an iced coffee in hand, and meme with my friends.</p>
+        <p style="color: #8c2d3a;">I am constantly searching for unique pairings and trying to figure out what happens next.</p>
       </div>
     </div>
 
