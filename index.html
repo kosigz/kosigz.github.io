@@ -178,16 +178,14 @@
       background-image: url('dock.png');
       background-size: cover;
       background-position: top center;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-end;
-      padding-bottom: 52px;
       animation: fadeUp 0.7s ease 0.45s both;
     }
 
-    /* Individual colorful stones — each icon lives in its own pebble */
     .footer-icons {
+      position: absolute;
+      bottom: 52px;
+      left: 50%;
+      transform: translateX(-50%);
       display: flex;
       align-items: flex-end;
       gap: 12px;
@@ -318,17 +316,6 @@
     const chopper = document.querySelector('.chopper');
     const quoteEl  = document.querySelector('.quote');
 
-    const vehicles = [
-      '<img src="helicopter.gif" height="80" alt="helicopter">',
-      '<span>🛸</span>',
-      '<span>🚀</span>',
-      '<span>🧹</span>',
-      '<span>🐄</span>',
-      '<span>🦅</span>',
-      '<span>🎅</span>',
-    ];
-    let vehicleIdx = 0;
-
     document.addEventListener('keydown', function(e) {
       const left = parseFloat(chopper.style.left);
       const top  = parseFloat(chopper.style.top);
@@ -346,10 +333,6 @@
           break;
         case 'ArrowDown':
           if (top < 160) chopper.style.top = (top + 10) + 'px';
-          break;
-        case 'e':
-          vehicleIdx = (vehicleIdx + 1) % vehicles.length;
-          chopper.innerHTML = vehicles[vehicleIdx];
           break;
         default: return;
       }
