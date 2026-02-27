@@ -111,13 +111,20 @@
 
     /* ─── Mobile ─────────────────────────────────────────────────────── */
 
-    @media (max-width: 600px) {
+    @media (max-width: 768px) {
       .chopper { display: none; }
-      .quote { display: none; }
+      .quote   { display: none; }
+      .footer  { display: none !important; }
+
+      body { overflow: hidden; }
 
       .wrapper {
-        padding: 28px 16px 220px;
-        gap: 10px;
+        height: 100dvh;
+        min-height: unset;
+        padding: 28px 20px;
+        gap: 12px;
+        justify-content: center;
+        overflow: hidden;
       }
       .portrait img {
         height: 100px;
@@ -126,22 +133,14 @@
         font-size: 14px;
       }
       .name {
-        font-size: 32px;
+        font-size: 30px;
       }
       .card {
-        padding: 14px 18px 16px;
+        padding: 14px 20px 16px;
       }
       .card p {
         font-size: 13px;
-        line-height: 1.55;
-      }
-      .blog-link {
-        font-size: 13px;
-        margin-top: 10px;
-      }
-      .footer {
-        height: 180px;
-        padding-bottom: 36px;
+        line-height: 1.5;
       }
     }
 

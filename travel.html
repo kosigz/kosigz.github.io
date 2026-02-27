@@ -37,7 +37,7 @@
     }
 
     .page {
-      height: 100vh;
+      height: 100dvh;
       display: flex;
       flex-direction: column;
       padding: 20px 28px;
@@ -109,9 +109,39 @@
       filter: drop-shadow(0 6px 20px rgba(0,0,0,0.12));
     }
 
-    @media (max-width: 700px) {
-      .content { grid-template-columns: 1fr; }
-      h1 { font-size: 32px; }
+    @media (max-width: 768px) {
+      body { overflow: hidden; }
+
+      .page {
+        height: 100dvh;
+        padding: 20px 16px;
+        overflow: hidden;
+      }
+
+      h1 { font-size: 28px; margin-bottom: 10px; }
+
+      .content {
+        gap: 12px;
+        max-width: 100%;
+      }
+
+      .text-card {
+        padding: 12px 16px;
+      }
+
+      .text-card p {
+        font-size: 12px;
+        line-height: 1.6;
+      }
+
+      .map-card {
+        padding: 10px;
+      }
+
+      .count {
+        font-size: 12px;
+        margin-top: 8px;
+      }
     }
 
     #map svg {
