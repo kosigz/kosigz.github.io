@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ski Run — Kosigz</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #f0f4f8; }
+    canvas { display: block; }
+
+    #back {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      font-family: 'Cabin Sketch', cursive;
+      font-size: 15px;
+      color: rgba(20,20,20,0.55);
+      text-decoration: none;
+      z-index: 10;
+      transition: opacity 0.2s;
+    }
+    #back:hover { opacity: 0.4; }
+  </style>
+</head>
+<body>
+
+  <a href="index.html" id="back">← back</a>
+  <canvas id="canvas"></canvas>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx    = canvas.getContext('2d');
+
+    let W, H;
+    function resize() {
+      W = canvas.width  = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+      if (player) { player.y = H * 0.72; }
+    }
+    window.addEventListener('resize', resize);
+
+    // ── State ─────────────────────────────────────────────────────────────
+    let state     = 'start';
+    let score     = 0;
+    let hiScore   = parseInt(localStorage.getItem('skiHiScore') || '0');
+    let speed     = 3;
+    let distance  = 0;
+    let frame     = 0;
+
+    // ── Player ────────────────────────────────────────────────────────────
+    const player = { x: 0, y: 0, vx: 0, trail: [] };
+
+    // ── Entities ──────────────────────────────────────────────────────────
+    let obstacles = [];
+    let coffees   = [];
+    let snowflakes = [];
+
+    function initSnow() {
+      snowflakes = [];
+      for (let i = 0; i < 60; i++) {
+        snowflakes.push({
+          x: Math.random() * W,
+          y: Math.random() * H,
+          r: Math.random() * 2 + 1,
+          vy: Math.random() * 1 + 0.5,
+          vx: (Math.random() - 0.5) * 0.4,
+        });
+      }
+    }
+
+    // ── Input ─────────────────────────────────────────────────────────────
+    const keys = {};
+    document.addEventListener('keydown', e => { keys[e.key] = true; e.preventDefault(); });
+    document.addEventListener('keyup',   e => { keys[e.key] = false; });
+
+    let touchSide = 0; // -1 left, 1 right, 0 none
+    canvas.addEventListener('touchstart', e => {
+      const tx = e.touches[0].clientX;
+      if (state === 'playing') {
+        touchSide = tx < W / 2 ? -1 : 1;
+      } else {
+        startGame();
+      }
+      e.preventDefault();
+    }, { passive: false });
+    canvas.addEventListener('touchend', () => touchSide = 0);
+
+    canvas.addEventListener('click', () => {
+      if (state === 'start' || state === 'dead') startGame();
+    });
+
+    // ── Spawn ─────────────────────────────────────────────────────────────
+    function spawnObstacle() {
+      const type = Math.random() < 0.65 ? 'tree' : 'rock';
+      obstacles.push({
+        type,
+        x: Math.random() * (W - 80) + 40,
+        y: -40,
+        size: type === 'tree' ? (18 + Math.random() * 10) : (12 + Math.random() * 8),
+      });
+    }
+
+    function spawnCoffee() {
+      coffees.push({
+        x: Math.random() * (W - 80) + 40,
+        y: -24,
+      });
+    }
+
+    // ── Update ────────────────────────────────────────────────────────────
+    function update() {
+      if (state !== 'playing') return;
+
+      frame++;
+      distance++;
+      score = Math.floor(distance / 8);
+      speed = 3 + distance / 600;
+
+      // Input
+      if (keys['ArrowLeft']  || keys['a'] || touchSide === -1) player.vx -= 0.9;
+      if (keys['ArrowRight'] || keys['d'] || touchSide ===  1) player.vx += 0.9;
+      player.vx = Math.max(-9, Math.min(9, player.vx));
+      player.vx *= 0.83;
+      player.x = Math.max(18, Math.min(W - 18, player.x + player.vx));
+
+      // Trail
+      player.trail.push({ x: player.x, y: player.y });
+      if (player.trail.length > 22) player.trail.shift();
+
+      // Spawn
+      const spawnInterval = Math.max(18, Math.round(55 - distance / 180));
+      if (frame % spawnInterval === 0) spawnObstacle();
+      if (frame % 110 === 0) spawnCoffee();
+
+      // Move
+      obstacles.forEach(o => o.y += speed);
+      coffees.forEach(c => c.y += speed * 0.85);
+      snowflakes.forEach(s => {
+        s.y += s.vy + speed * 0.15;
+        s.x += s.vx;
+        if (s.y > H) s.y = -4;
+        if (s.x > W) s.x = 0;
+        if (s.x < 0) s.x = W;
+      });
+
+      obstacles = obstacles.filter(o => o.y < H + 60);
+      coffees   = coffees.filter(c => c.y < H + 40);
+
+      // Collision — obstacles
+      for (const o of obstacles) {
+        const hitR = o.type === 'tree' ? o.size * 0.55 : o.size * 0.85;
+        const dx = player.x - o.x;
+        const dy = (player.y + 6) - o.y;
+        if (Math.hypot(dx, dy) < hitR + 11) {
+          state = 'dead';
+          if (score > hiScore) {
+            hiScore = score;
+            localStorage.setItem('skiHiScore', hiScore);
+          }
+          return;
+        }
+      }
+
+      // Collect coffee
+      coffees = coffees.filter(c => {
+        if (Math.hypot(player.x - c.x, player.y - c.y) < 22) {
+          speed = Math.min(speed + 0.8, 14);
+          distance += 80;
+          return false;
+        }
+        return true;
+      });
+    }
+
+    // ── Draw helpers ──────────────────────────────────────────────────────
+    function drawTree(x, y, s) {
+      // Shadow
+      ctx.fillStyle = 'rgba(0,0,0,0.08)';
+      ctx.beginPath();
+      ctx.ellipse(x + 4, y + s * 0.55, s * 0.6, s * 0.2, 0, 0, Math.PI * 2);
+      ctx.fill();
+      // Two tiers
+      ctx.fillStyle = '#5a9e30';
+      ctx.beginPath();
+      ctx.moveTo(x, y - s * 1.1);
+      ctx.lineTo(x - s * 0.75, y + s * 0.1);
+      ctx.lineTo(x + s * 0.75, y + s * 0.1);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = '#7ab648';
+      ctx.beginPath();
+      ctx.moveTo(x, y - s * 0.55);
+      ctx.lineTo(x - s * 0.95, y + s * 0.55);
+      ctx.lineTo(x + s * 0.95, y + s * 0.55);
+      ctx.closePath();
+      ctx.fill();
+      // Trunk
+      ctx.fillStyle = '#7a5230';
+      ctx.fillRect(x - 3, y + s * 0.55, 6, s * 0.38);
+    }
+
+    function drawRock(x, y, s) {
+      ctx.fillStyle = 'rgba(0,0,0,0.1)';
+      ctx.beginPath();
+      ctx.ellipse(x + 3, y + s * 0.5, s * 1.1, s * 0.35, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#8a8a8a';
+      ctx.beginPath();
+      ctx.ellipse(x, y, s * 1.2, s * 0.75, -0.1, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#b0b0b0';
+      ctx.beginPath();
+      ctx.ellipse(x - s * 0.25, y - s * 0.15, s * 0.45, s * 0.28, -0.4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function drawCoffee(x, y) {
+      // Glow
+      ctx.fillStyle = 'rgba(255, 200, 100, 0.25)';
+      ctx.beginPath();
+      ctx.arc(x, y, 18, 0, Math.PI * 2);
+      ctx.fill();
+      // Cup body
+      ctx.fillStyle = '#5d4037';
+      ctx.beginPath();
+      ctx.roundRect(x - 9, y - 7, 18, 18, 3);
+      ctx.fill();
+      // Cup rim
+      ctx.fillStyle = '#795548';
+      ctx.fillRect(x - 10, y - 9, 20, 5);
+      // Handle
+      ctx.strokeStyle = '#5d4037';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(x + 10, y + 1, 5, -0.8, 0.8);
+      ctx.stroke();
+      // Steam
+      ctx.strokeStyle = 'rgba(255,255,255,0.65)';
+      ctx.lineWidth = 1.5;
+      ctx.lineCap = 'round';
+      for (let i = -1; i <= 1; i++) {
+        ctx.beginPath();
+        ctx.moveTo(x + i * 4, y - 10);
+        ctx.quadraticCurveTo(x + i * 4 - 3, y - 15, x + i * 4, y - 20);
+        ctx.stroke();
+      }
+    }
+
+    function drawPlayer(x, y) {
+      const lean = player.vx * 0.06;
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(lean);
+      // Shadow
+      ctx.fillStyle = 'rgba(0,0,0,0.12)';
+      ctx.beginPath();
+      ctx.ellipse(2, 16, 12, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
+      // Skis
+      ctx.fillStyle = '#1a1a1a';
+      ctx.save();
+      ctx.rotate(-lean * 0.5);
+      ctx.beginPath();
+      ctx.roundRect(-16, 11, 14, 4, 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.roundRect(2, 11, 14, 4, 2);
+      ctx.fill();
+      ctx.restore();
+      // Body (jacket)
+      ctx.fillStyle = '#8c2d3a';
+      ctx.beginPath();
+      ctx.ellipse(0, 2, 9, 12, 0, 0, Math.PI * 2);
+      ctx.fill();
+      // Head
+      ctx.fillStyle = '#f5cba7';
+      ctx.beginPath();
+      ctx.arc(0, -14, 7, 0, Math.PI * 2);
+      ctx.fill();
+      // Helmet
+      ctx.fillStyle = '#8c2d3a';
+      ctx.beginPath();
+      ctx.arc(0, -16, 7, Math.PI, 0);
+      ctx.fill();
+      // Goggles
+      ctx.fillStyle = '#fdd835';
+      ctx.beginPath();
+      ctx.roundRect(-6, -17, 12, 5, 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // ── Screens ───────────────────────────────────────────────────────────
+    function drawBackground() {
+      // Snow gradient
+      const grad = ctx.createLinearGradient(0, 0, 0, H);
+      grad.addColorStop(0, '#e8f0f8');
+      grad.addColorStop(1, '#f5f8fc');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, W, H);
+
+      // Ski tracks from trail
+      if (player.trail.length > 1) {
+        ctx.strokeStyle = 'rgba(160, 195, 230, 0.45)';
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        for (const dx of [-9, 9]) {
+          ctx.beginPath();
+          player.trail.forEach((p, i) => {
+            i === 0 ? ctx.moveTo(p.x + dx, p.y + 12) : ctx.lineTo(p.x + dx, p.y + 12);
+          });
+          ctx.stroke();
+        }
+      }
+
+      // Snowflakes
+      ctx.fillStyle = 'rgba(255,255,255,0.8)';
+      snowflakes.forEach(s => {
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    function drawHUD() {
+      ctx.fillStyle = 'rgba(255,255,255,0.75)';
+      ctx.beginPath();
+      ctx.roundRect(W - 118, 14, 104, 38, 10);
+      ctx.fill();
+      ctx.fillStyle = '#1a1a1a';
+      ctx.font = "bold 20px 'Cabin Sketch', cursive";
+      ctx.textAlign = 'right';
+      ctx.fillText(`${score}m`, W - 20, 40);
+    }
+
+    function drawCard(cx, cy, w, h) {
+      ctx.fillStyle = 'rgba(255,255,255,0.88)';
+      ctx.shadowColor = 'rgba(0,0,0,0.12)';
+      ctx.shadowBlur = 20;
+      ctx.beginPath();
+      ctx.roundRect(cx - w/2, cy - h/2, w, h, 20);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+
+    function drawButton(cx, cy, label) {
+      ctx.fillStyle = '#7ab648';
+      ctx.beginPath();
+      ctx.roundRect(cx - 70, cy - 22, 140, 44, 12);
+      ctx.fill();
+      ctx.fillStyle = 'white';
+      ctx.font = "bold 20px 'Cabin Sketch', cursive";
+      ctx.textAlign = 'center';
+      ctx.fillText(label, cx, cy + 7);
+    }
+
+    function drawStartScreen() {
+      const grad = ctx.createLinearGradient(0, 0, 0, H);
+      grad.addColorStop(0, '#d0e8f8');
+      grad.addColorStop(1, '#eef4fb');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, W, H);
+
+      snowflakes.forEach(s => {
+        ctx.fillStyle = 'rgba(255,255,255,0.85)';
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fill();
+        s.y += s.vy * 0.5;
+        if (s.y > H) s.y = 0;
+      });
+
+      const cx = W / 2, cy = H / 2;
+      drawCard(cx, cy, 300, 220);
+
+      ctx.fillStyle = '#1a1a1a';
+      ctx.font = "bold 38px 'Cabin Sketch', cursive";
+      ctx.textAlign = 'center';
+      ctx.fillText('Ski Run', cx, cy - 68);
+
+      ctx.font = "15px 'Cabin Sketch', cursive";
+      ctx.fillStyle = 'rgba(0,0,0,0.5)';
+      ctx.fillText('← → arrow keys to steer', cx, cy - 30);
+      ctx.fillText('collect ☕ for a speed boost', cx, cy - 5);
+
+      if (hiScore > 0) {
+        ctx.fillStyle = '#8c2d3a';
+        ctx.font = "16px 'Cabin Sketch', cursive";
+        ctx.fillText(`best: ${hiScore}m`, cx, cy + 30);
+      }
+
+      drawButton(cx, cy + 70, 'play');
+    }
+
+    function drawDeadScreen() {
+      drawBackground();
+      obstacles.forEach(o => o.type === 'tree' ? drawTree(o.x, o.y, o.size) : drawRock(o.x, o.y, o.size));
+      coffees.forEach(c => drawCoffee(c.x, c.y));
+      drawPlayer(player.x, player.y);
+
+      ctx.fillStyle = 'rgba(0,0,0,0.35)';
+      ctx.fillRect(0, 0, W, H);
+
+      const cx = W / 2, cy = H / 2;
+      drawCard(cx, cy, 300, 240);
+
+      ctx.fillStyle = '#1a1a1a';
+      ctx.font = "bold 34px 'Cabin Sketch', cursive";
+      ctx.textAlign = 'center';
+      ctx.fillText('wipeout', cx, cy - 72);
+
+      ctx.font = "bold 40px 'Cabin Sketch', cursive";
+      ctx.fillText(`${score}m`, cx, cy - 22);
+
+      if (score > 0 && score >= hiScore) {
+        ctx.fillStyle = '#8c2d3a';
+        ctx.font = "18px 'Cabin Sketch', cursive";
+        ctx.fillText('new best!', cx, cy + 18);
+      } else if (hiScore > 0) {
+        ctx.fillStyle = 'rgba(0,0,0,0.38)';
+        ctx.font = "15px 'Cabin Sketch', cursive";
+        ctx.fillText(`best: ${hiScore}m`, cx, cy + 18);
+      }
+
+      drawButton(cx, cy + 72, 'again');
+    }
+
+    function drawGame() {
+      drawBackground();
+      obstacles.forEach(o => o.type === 'tree' ? drawTree(o.x, o.y, o.size) : drawRock(o.x, o.y, o.size));
+      coffees.forEach(c => drawCoffee(c.x, c.y));
+      drawPlayer(player.x, player.y);
+      drawHUD();
+    }
+
+    // ── Game control ──────────────────────────────────────────────────────
+    function startGame() {
+      state     = 'playing';
+      score     = 0;
+      distance  = 0;
+      speed     = 3;
+      frame     = 0;
+      obstacles = [];
+      coffees   = [];
+      player.x  = W / 2;
+      player.vx = 0;
+      player.trail = [];
+      initSnow();
+    }
+
+    // ── Loop ──────────────────────────────────────────────────────────────
+    function loop() {
+      update();
+      if      (state === 'start') drawStartScreen();
+      else if (state === 'dead')  drawDeadScreen();
+      else                        drawGame();
+      requestAnimationFrame(loop);
+    }
+
+    resize();
+    initSnow();
+    document.fonts.ready.then(loop);
+  </script>
+</body>
+</html>

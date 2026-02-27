@@ -114,12 +114,16 @@
     @media (max-width: 768px) {
       .chopper { display: none; }
       .quote   { display: none; }
-      .footer  { display: none !important; }
 
       body { overflow: hidden; }
 
+      .footer {
+        height: 160px;
+        padding-bottom: 30px;
+      }
+
       .wrapper {
-        height: 100dvh;
+        height: calc(100dvh - 160px);
         min-height: unset;
         padding: 28px 20px;
         gap: 12px;
