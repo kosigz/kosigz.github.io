@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Premium Air - Konstantin Gizdarski</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+  <script async src="https://js.stripe.com/v3/buy-button.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      min-height: 100%;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url('justsky.png');
+      background-size: cover;
+      background-position: center top;
+      z-index: -2;
+    }
+
+    #sky-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background-color: transparent;
+      transition: background-color 3s ease;
+      -webkit-mask-image: linear-gradient(to bottom, transparent 55%, black 100%);
+      mask-image: linear-gradient(to bottom, transparent 55%, black 100%);
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50%       { transform: translateY(-8px); }
+    }
+
+    .page {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 28px 20px 80px;
+      gap: 18px;
+    }
+
+    .back-link {
+      align-self: flex-start;
+      color: rgba(20, 20, 20, 0.65);
+      text-decoration: none;
+      font-family: 'Cabin Sketch', cursive;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: opacity 0.2s;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    .back-link:hover { opacity: 0.5; }
+
+    .hero {
+      text-align: center;
+      animation: fadeUp 0.6s ease 0.1s both;
+    }
+
+    .hero h1 {
+      font-family: 'Cabin Sketch', cursive;
+      font-size: 52px;
+      color: #1a1a1a;
+      line-height: 1.1;
+    }
+
+    .hero .tagline {
+      font-family: 'Cabin Sketch', cursive;
+      font-size: 16px;
+      color: rgba(20, 20, 20, 0.6);
+      margin-top: 6px;
+    }
+
+    .jar {
+      font-size: 100px;
+      animation: float 3.5s ease-in-out infinite;
+      line-height: 1;
+      filter: drop-shadow(0 12px 24px rgba(0,0,0,0.15));
+    }
+
+    .card-outer {
+      max-width: 520px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.32);
+      border-radius: 20px;
+      filter: drop-shadow(0 6px 20px rgba(0,0,0,0.12));
+    }
+
+    .card {
+      padding: 22px 28px 24px;
+      text-align: center;
+    }
+
+    .card p {
+      font-family: 'Cabin Sketch', cursive;
+      font-size: 14px;
+      line-height: 1.7;
+      color: rgba(15, 15, 15, 0.85);
+    }
+
+    .card p + p { margin-top: 0.5em; }
+
+    .price-card {
+      max-width: 520px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.32);
+      border-radius: 20px;
+      filter: drop-shadow(0 6px 20px rgba(0,0,0,0.12));
+      animation: fadeUp 0.6s ease 0.35s both;
+    }
+
+    .price-inner {
+      padding: 24px 28px 28px;
+      text-align: center;
+    }
+
+    .price-inner h2 {
+      font-family: 'Cabin Sketch', cursive;
+      font-size: 22px;
+      color: #1a1a1a;
+      margin-bottom: 14px;
+    }
+
+    .price-tag {
+      font-family: 'Cabin Sketch', cursive;
+      font-size: 48px;
+      color: #1a1a1a;
+      line-height: 1;
+    }
+
+    .price-tag span {
+      font-size: 20px;
+      vertical-align: top;
+      margin-top: 8px;
+      display: inline-block;
+    }
+
+    .price-sub {
+      font-family: 'Cabin Sketch', cursive;
+      font-size: 13px;
+      color: rgba(20, 20, 20, 0.5);
+      margin-top: 4px;
+      margin-bottom: 20px;
+    }
+
+    .features {
+      list-style: none;
+      text-align: left;
+      margin-bottom: 24px;
+      display: inline-block;
+    }
+
+    .features li {
+      font-family: 'Cabin Sketch', cursive;
+      font-size: 13px;
+      color: rgba(15, 15, 15, 0.8);
+      padding: 3px 0;
+    }
+
+    .features li::before {
+      content: '✓ ';
+      color: #7ab648;
+      font-weight: 700;
+    }
+
+    .buy-btn {
+      display: inline-block;
+      background: #8c2d3a;
+      color: white;
+      font-family: 'Cabin Sketch', cursive;
+      font-size: 18px;
+      padding: 12px 36px;
+      border-radius: 50px;
+      text-decoration: none;
+      transition: transform 0.2s ease, filter 0.2s ease;
+      filter: drop-shadow(0 4px 10px rgba(0,0,0,0.2));
+    }
+
+    .buy-btn:hover {
+      transform: translateY(-3px) scale(1.04);
+      filter: drop-shadow(0 8px 16px rgba(0,0,0,0.25)) brightness(1.1);
+    }
+
+    .disclaimer {
+      font-family: 'Cabin Sketch', cursive;
+      font-size: 11px;
+      color: rgba(20, 20, 20, 0.4);
+      text-align: center;
+      max-width: 380px;
+      line-height: 1.5;
+      animation: fadeUp 0.6s ease 0.5s both;
+    }
+
+    .desc-card {
+      animation: fadeUp 0.6s ease 0.25s both;
+    }
+
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 36px; }
+      .jar { font-size: 72px; }
+      .card { padding: 16px 20px 18px; }
+      .card p { font-size: 13px; }
+      .price-inner { padding: 18px 20px 22px; }
+      .price-tag { font-size: 38px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="sky-overlay"></div>
+
+  <div class="page">
+    <a href="index.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> back</a>
+
+    <div class="hero">
+      <div class="jar">🫙</div>
+      <h1>Premium Air</h1>
+      <p class="tagline">Artisanal. Hand-bottled. 100% air.</p>
+    </div>
+
+    <div class="card-outer desc-card">
+      <div class="card">
+        <p>You breathe it every day. You've never paid for it. Until now.</p>
+        <p>Our premium air is responsibly sourced from the upper atmosphere above the San Francisco Bay Area — where startup ideas are born and the weather is somehow always 58 degrees.</p>
+        <p>Each jar contains exactly as much air as we felt like putting in.</p>
+        <p style="color: #8c2d3a;">Limited supply. Not really. But it sounds better this way.</p>
+      </div>
+    </div>
+
+    <div class="price-card">
+      <div class="price-inner">
+        <h2>The Classic Jar</h2>
+        <div class="price-tag"><span>$</span>9.99</div>
+        <p class="price-sub">per jar &nbsp;/&nbsp; one-time purchase</p>
+        <ul class="features">
+          <li>Approximately 1 liter of genuine air</li>
+          <li>78% nitrogen, 21% oxygen, 1% vibes</li>
+          <li>Sourced from above sea level</li>
+          <li>Gluten-free, dairy-free, mostly empty</li>
+          <li>Certificate of authenticity (not included)</li>
+        </ul>
+        <stripe-buy-button
+          buy-button-id="buy_btn_1TCvUtJYDJRS5w0dm5uAO7tw"
+          publishable-key="pk_test_NX8uTE7OSC90SEfokQwSJEDa"
+        ></stripe-buy-button>
+      </div>
+    </div>
+
+    <p class="disclaimer">
+      By purchasing, you acknowledge that air is everywhere and you did not need to buy this. No refunds — the air has already been breathed.
+    </p>
+  </div>
+
+  <script>
+    (function() {
+      const overlay = document.getElementById('sky-overlay');
+      function applyHour(h) {
+        let color;
+        if      (h <  5.0) color = 'rgba(4, 7, 32, 0.88)';
+        else if (h <  6.5) color = 'rgba(55, 12, 85, 0.78)';
+        else if (h <  8.0) color = 'rgba(230, 75, 15, 0.82)';
+        else if (h < 17.0) color = 'rgba(0, 0, 0, 0)';
+        else if (h < 18.5) color = 'rgba(255, 115, 0, 0.78)';
+        else if (h < 20.0) color = 'rgba(185, 25, 55, 0.85)';
+        else if (h < 21.5) color = 'rgba(35, 10, 65, 0.72)';
+        else               color = 'rgba(4, 7, 32, 0.85)';
+        overlay.style.backgroundColor = color;
+      }
+      function applyTime() {
+        const now = new Date();
+        applyHour(now.getHours() + now.getMinutes() / 60);
+      }
+      applyTime();
+      setInterval(applyTime, 60 * 1000);
+    })();
+  </script>
+
+</body>
+</html>
