@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Time It — Kosigz</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      min-height: 100%;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url('justsky.png');
+      background-size: cover;
+      background-position: center top;
+      z-index: -2;
+    }
+
+    #sky-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background-color: transparent;
+      transition: background-color 3s ease;
+      -webkit-mask-image: linear-gradient(to bottom, transparent 55%, black 100%);
+      mask-image: linear-gradient(to bottom, transparent 55%, black 100%);
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.97); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(122, 182, 72, 0.35), 0 8px 32px rgba(0,0,0,0.12); }
+      50%       { box-shadow: 0 0 0 14px rgba(122, 182, 72, 0), 0 8px 32px rgba(0,0,0,0.12); }
+    }
+
+    @keyframes breathe {
+      0%, 100% { transform: scale(1); }
+      50%       { transform: scale(1.04); }
+    }
+
+    @keyframes dot-pulse {
+      0%, 100% { opacity: 0.2; transform: scale(0.75); }
+      50%       { opacity: 1;   transform: scale(1.2); }
+    }
+
+    @keyframes slide-up {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .page {
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 20px 60px;
+    }
+
+    .back-link {
+      align-self: flex-start;
+      color: rgba(20, 20, 20, 0.65);
+      text-decoration: none;
+      font-family: 'Cabin Sketch', cursive;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: opacity 0.2s;
+      animation: fadeUp 0.4s ease both;
+    }
+    .back-link:hover { opacity: 0.5; }
+
+    .game-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      max-width: 440px;
+      padding-top: 16px;
+    }
+
+    .game-card {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.32);
+      border-radius: 28px;
+      padding: 44px 40px 48px;
+      text-align: center;
+      filter: drop-shadow(0 6px 24px rgba(0,0,0,0.12));
+      animation: fadeUp 0.5s ease 0.1s both;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+      transition: background 0.4s ease, filter 0.2s;
+    }
+
+    .game-card.running {
+      background: rgba(235, 252, 225, 0.4);
+      animation: pulse-glow 1.8s ease-in-out infinite;
+    }
+
+    .game-card:not(.running):hover {
+      filter: drop-shadow(0 10px 30px rgba(0,0,0,0.16));
+    }
+
+    /* ── Idle ── */
+
+    .title {
+      font-family: 'Cabin Sketch', cursive;
+      font-size: 40px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 2px;
+    }
+
+    .tagline {
+      font-family: 'Cabin Sketch', cursive;
+      font-size: 13px;
+      color: rgba(20,20,20,0.45);
+      margin-bottom: 32px;
+    }
+
+    .target-num {
+      font-family: 'Cabin Sketch', cursive;
+      font-size: 76px;
+      font-weight: 700;
+      color: #1a1a1a;
+      line-height: 1;
+      letter-spacing: -2px;
+    }
+
+    .ms-unit {
+      font-family: 'Cabin Sketch', cursive;
+      font-size: 16px;
+      color: rgba(20,20,20,0.4);
+      margin-top: 4px;
+    }
+
+    .sec-hint {
+      font-family: 'Cabin Sketch', cursive;
+      font-size: 13px;
+      color: rgba(20,20,20,0.3);
+      margin-top: 2px;
+      margin-bottom: 28px;
+      min-height: 1.2em;
+    }
+
+    .slider-wrap {
+      margin-bottom: 32px;
+      width: 100%;
+    }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 5px;
+      border-radius: 3px;
+      background: rgba(20,20,20,0.14);
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #7ab648;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+      transition: transform 0.15s;
+    }
+
+    input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.18); }
+
+    input[type=range]::-moz-range-thumb {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #7ab648;
+      cursor: pointer;
+      border: none;
+    }
+
+    .hint {
+      font-family: 'Cabin Sketch', cursive;
+      font-size: 13px;
+      color: rgba(20,20,20,0.38);
+    }
+
+    /* ── Running ── */
+
+    .run-label {
+      font-family: 'Cabin Sketch', cursive;
+      font-size: 12px;
+      color: rgba(20,20,20,0.4);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 10px;
+    }
+
+    .run-num {
+      font-family: 'Cabin Sketch', cursive;
+      font-size: 88px;
+      font-weight: 700;
+      color: #1a1a1a;
+      line-height: 1;
+      letter-spacing: -3px;
+      animation: breathe 1.8s ease-in-out infinite;
+    }
+
+    .dots {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin: 24px 0 20px;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #7ab648;
+      animation: dot-pulse 1.8s ease-in-out infinite;
+    }
+    .dot:nth-child(2) { animation-delay: 0.3s; }
+    .dot:nth-child(3) { animation-delay: 0.6s; }
+
+    /* ── Result ── */
+
+    .result-cols {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 6px;
+      animation: slide-up 0.35s ease both;
+    }
+
+    .result-col {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .result-label {
+      font-family: 'Cabin Sketch', cursive;
+      font-size: 11px;
+      color: rgba(20,20,20,0.4);
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      margin-bottom: 5px;
+    }
+
+    .result-val {
+      font-family: 'Cabin Sketch', cursive;
+      font-size: 30px;
+      font-weight: 700;
+      color: #1a1a1a;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .result-ms {
+      font-family: 'Cabin Sketch', cursive;
+      font-size: 10px;
+      color: rgba(20,20,20,0.3);
+      margin-top: 3px;
+    }
+
+    .col-divider {
+      width: 1px;
+      background: rgba(20,20,20,0.1);
+      align-self: stretch;
+      margin: 8px 0;
+    }
+
+    .rating-text {
+      font-family: 'Cabin Sketch', cursive;
+      font-size: 48px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin: 22px 0 8px;
+      animation: fadeIn 0.4s ease 0.1s both;
+      line-height: 1;
+    }
+
+    .best-line {
+      font-family: 'Cabin Sketch', cursive;
+      font-size: 12px;
+      color: rgba(20,20,20,0.38);
+      margin-bottom: 22px;
+      min-height: 1.4em;
+    }
+
+    .best-line.improved {
+      color: #7ab648;
+    }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 400px) {
+      .game-card { padding: 36px 24px 40px; }
+      .title { font-size: 32px; }
+      .target-num { font-size: 62px; }
+      .run-num { font-size: 72px; }
+      .result-val { font-size: 24px; }
+      .rating-text { font-size: 38px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="sky-overlay"></div>
+
+  <div class="page">
+    <a href="games.html" class="back-link">
+      <i class="fa-solid fa-arrow-left"></i> back
+    </a>
+
+    <div class="game-wrap">
+      <div class="game-card" id="card">
+
+        <!-- ── Idle ── -->
+        <div id="screen-idle">
+          <h1 class="title">Time It</h1>
+          <p class="tagline">how well do you know a second?</p>
+
+          <div class="target-num" id="target-display">5,000</div>
+          <div class="ms-unit">ms</div>
+          <div class="sec-hint" id="sec-hint">5s</div>
+
+          <div class="slider-wrap">
+            <input type="range" id="slider" min="100" max="60000" step="100" value="5000">
+          </div>
+
+          <p class="hint">space &nbsp;·&nbsp; tap &nbsp;·&nbsp; click to start</p>
+        </div>
+
+        <!-- ── Running ── -->
+        <div id="screen-running" class="hidden">
+          <p class="run-label">target</p>
+          <div class="run-num" id="run-display">5,000</div>
+          <div class="ms-unit">ms</div>
+          <div class="dots">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+          </div>
+          <p class="hint">space &nbsp;·&nbsp; tap &nbsp;·&nbsp; click to stop</p>
+        </div>
+
+        <!-- ── Result ── -->
+        <div id="screen-result" class="hidden">
+          <div class="result-cols">
+            <div class="result-col">
+              <div class="result-label">target</div>
+              <div class="result-val" id="res-target">5,000</div>
+              <div class="result-ms">ms</div>
+            </div>
+            <div class="col-divider"></div>
+            <div class="result-col">
+              <div class="result-label">your time</div>
+              <div class="result-val" id="res-actual">4,847</div>
+              <div class="result-ms">ms</div>
+            </div>
+            <div class="col-divider"></div>
+            <div class="result-col">
+              <div class="result-label">off by</div>
+              <div class="result-val" id="res-delta">−153</div>
+              <div class="result-ms">ms</div>
+            </div>
+          </div>
+
+          <div class="rating-text" id="rating-text">sharp</div>
+          <div class="best-line" id="best-line"></div>
+          <p class="hint">space &nbsp;·&nbsp; tap &nbsp;·&nbsp; click to adjust</p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const card        = document.getElementById('card');
+    const slider      = document.getElementById('slider');
+    const screens = {
+      idle:    document.getElementById('screen-idle'),
+      running: document.getElementById('screen-running'),
+      result:  document.getElementById('screen-result'),
+    };
+    const targetDisplay = document.getElementById('target-display');
+    const secHint       = document.getElementById('sec-hint');
+    const runDisplay    = document.getElementById('run-display');
+    const resTarget     = document.getElementById('res-target');
+    const resActual     = document.getElementById('res-actual');
+    const resDelta      = document.getElementById('res-delta');
+    const ratingText    = document.getElementById('rating-text');
+    const bestLine      = document.getElementById('best-line');
+
+    let state     = 'idle';
+    let target    = 5000;
+    let startTime = null;
+    let bestDelta = (() => {
+      const v = parseInt(localStorage.getItem('timeItBest'));
+      return isNaN(v) ? null : v;
+    })();
+
+    function fmtMs(ms) {
+      return Math.abs(Math.round(ms)).toLocaleString();
+    }
+
+    function secLabel(ms) {
+      const s = ms / 1000;
+      if (s < 1)  return `${ms}ms`;
+      if (s >= 60) return '1m';
+      return s % 1 === 0 ? `${s}s` : `${s.toFixed(1)}s`;
+    }
+
+    function getRating(delta) {
+      if (delta <=  15) return { text: 'psychic',      color: '#8c2d3a' };
+      if (delta <=  40) return { text: 'uncanny',      color: '#8c2d3a' };
+      if (delta <= 100) return { text: 'razor sharp',  color: '#7ab648' };
+      if (delta <= 200) return { text: 'close!',       color: '#7ab648' };
+      if (delta <= 450) return { text: 'not bad',      color: '#555'    };
+      if (delta <= 900) return { text: 'keep going',   color: '#888'    };
+      return               { text: 'way off',       color: '#aaa'    };
+    }
+
+    function showScreen(name) {
+      for (const [k, el] of Object.entries(screens)) {
+        el.classList.toggle('hidden', k !== name);
+      }
+      card.classList.toggle('running', name === 'running');
+    }
+
+    function updateTargetDisplay(ms) {
+      targetDisplay.textContent = ms.toLocaleString();
+      secHint.textContent = secLabel(ms);
+    }
+
+    function startRound() {
+      target = parseInt(slider.value);
+      runDisplay.textContent = target.toLocaleString();
+      startTime = performance.now();
+      state = 'running';
+      showScreen('running');
+    }
+
+    function stopRound() {
+      const elapsed  = Math.round(performance.now() - startTime);
+      const signedDelta = elapsed - target;
+      const absDelta = Math.abs(signedDelta);
+
+      resTarget.textContent = target.toLocaleString();
+      resActual.textContent = elapsed.toLocaleString();
+
+      const sign = signedDelta >= 0 ? '+' : '\u2212';
+      resDelta.textContent = sign + absDelta.toLocaleString();
+
+      // Color the delta
+      resDelta.style.color =
+        absDelta <= 100 ? '#27ae60' :
+        absDelta >  450 ? '#c0392b' : '#1a1a1a';
+
+      const rating = getRating(absDelta);
+      ratingText.textContent = rating.text;
+      ratingText.style.color = rating.color;
+
+      // Best tracking
+      const prevBest = bestDelta;
+      const isNewBest = prevBest === null || absDelta < prevBest;
+      if (isNewBest) {
+        bestDelta = absDelta;
+        localStorage.setItem('timeItBest', bestDelta);
+        if (prevBest !== null) {
+          bestLine.textContent = `new best!  (was ${prevBest.toLocaleString()} ms off)`;
+          bestLine.className = 'best-line improved';
+        } else {
+          bestLine.textContent = '';
+          bestLine.className = 'best-line';
+        }
+      } else {
+        bestLine.textContent = `best: ${bestDelta.toLocaleString()} ms off`;
+        bestLine.className = 'best-line';
+      }
+
+      state = 'result';
+      showScreen('result');
+    }
+
+    function handleAction() {
+      if (state === 'idle' || state === 'result') {
+        startRound();
+      } else if (state === 'running') {
+        stopRound();
+      }
+    }
+
+    // Prevent double-fire on mobile (touchend blocks synthetic click)
+    card.addEventListener('touchend', e => {
+      if (e.target === slider) return;
+      e.preventDefault();
+      handleAction();
+    }, { passive: false });
+
+    card.addEventListener('click', e => {
+      if (e.target === slider) return;
+      handleAction();
+    });
+
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        handleAction();
+      }
+    });
+
+    slider.addEventListener('input', () => {
+      target = parseInt(slider.value);
+      updateTargetDisplay(target);
+    });
+
+    // Stop slider touches from bubbling to card
+    slider.addEventListener('touchstart', e => e.stopPropagation(), { passive: true });
+    slider.addEventListener('touchend',   e => e.stopPropagation(), { passive: true });
+
+    // Init
+    updateTargetDisplay(parseInt(slider.value));
+    showScreen('idle');
+  </script>
+
+  <script>
+    (function() {
+      const overlay = document.getElementById('sky-overlay');
+      function applyHour(h) {
+        let color;
+        if      (h <  5.0) color = 'rgba(4, 7, 32, 0.88)';
+        else if (h <  6.5) color = 'rgba(55, 12, 85, 0.78)';
+        else if (h <  8.0) color = 'rgba(230, 75, 15, 0.82)';
+        else if (h < 17.0) color = 'rgba(0, 0, 0, 0)';
+        else if (h < 18.5) color = 'rgba(255, 115, 0, 0.78)';
+        else if (h < 20.0) color = 'rgba(185, 25, 55, 0.85)';
+        else if (h < 21.5) color = 'rgba(35, 10, 65, 0.72)';
+        else               color = 'rgba(4, 7, 32, 0.85)';
+        overlay.style.backgroundColor = color;
+      }
+      function applyTime() {
+        const now = new Date();
+        applyHour(now.getHours() + now.getMinutes() / 60);
+      }
+      applyTime();
+      setInterval(applyTime, 60 * 1000);
+    })();
+  </script>
+
+</body>
+</html>
