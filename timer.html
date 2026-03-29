@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Time It — Kosigz</title>
+  <title>Time It by Konstantin</title>
   <link href="https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@400;700&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
   <style>
@@ -38,6 +38,11 @@
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(16px); }
       to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50%       { transform: translateY(-7px); }
     }
 
     @keyframes fadeIn {
@@ -122,6 +127,15 @@
 
     /* ── Idle ── */
 
+    .emoji {
+      font-size: 64px;
+      line-height: 1;
+      margin-bottom: 10px;
+      display: block;
+      animation: float 3.2s ease-in-out infinite;
+      filter: drop-shadow(0 8px 16px rgba(0,0,0,0.12));
+    }
+
     .title {
       font-family: 'Cabin Sketch', cursive;
       font-size: 40px;
@@ -134,7 +148,18 @@
       font-family: 'Cabin Sketch', cursive;
       font-size: 13px;
       color: rgba(20,20,20,0.45);
-      margin-bottom: 32px;
+      margin-bottom: 20px;
+    }
+
+    .how-to {
+      font-family: 'Cabin Sketch', cursive;
+      font-size: 13px;
+      color: rgba(20,20,20,0.55);
+      line-height: 1.7;
+      margin-bottom: 24px;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.35);
+      border-radius: 12px;
     }
 
     .target-num {
@@ -340,8 +365,15 @@
 
         <!-- ── Idle ── -->
         <div id="screen-idle">
+          <span class="emoji">⏱️</span>
           <h1 class="title">Time It</h1>
-          <p class="tagline">how well do you know a second?</p>
+          <p class="tagline">How well do you know a second?</p>
+
+          <div class="how-to">
+            Set a target time with the slider.<br>
+            Start the clock — no peeking, no counting.<br>
+            Stop it when your gut says time's up.
+          </div>
 
           <div class="target-num" id="target-display">5,000</div>
           <div class="ms-unit">ms</div>
