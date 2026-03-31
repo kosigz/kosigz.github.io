@@ -454,6 +454,10 @@
       const v = parseInt(localStorage.getItem('timeItBest'));
       return isNaN(v) ? null : v;
     })();
+    let attempts = (() => {
+      const v = parseInt(localStorage.getItem('timeItAttempts'));
+      return isNaN(v) ? 0 : v;
+    })();
 
     function fmtMs(ms) {
       return Math.abs(Math.round(ms)).toLocaleString();
@@ -517,20 +521,24 @@
       ratingText.style.color = rating.color;
 
       // Best tracking
+      attempts++;
+      localStorage.setItem('timeItAttempts', attempts);
+      const attemptsLabel = `${attempts.toLocaleString()} attempt${attempts === 1 ? '' : 's'}`;
+
       const prevBest = bestDelta;
       const isNewBest = prevBest === null || absDelta < prevBest;
       if (isNewBest) {
         bestDelta = absDelta;
         localStorage.setItem('timeItBest', bestDelta);
         if (prevBest !== null) {
-          bestLine.textContent = `new best!  (was ${prevBest.toLocaleString()} ms off)`;
+          bestLine.textContent = `new best!  (was ${prevBest.toLocaleString()} ms off)  ·  ${attemptsLabel}`;
           bestLine.className = 'best-line improved';
         } else {
-          bestLine.textContent = '';
+          bestLine.textContent = attemptsLabel;
           bestLine.className = 'best-line';
         }
       } else {
-        bestLine.textContent = `best: ${bestDelta.toLocaleString()} ms off`;
+        bestLine.textContent = `best: ${bestDelta.toLocaleString()} ms off  ·  ${attemptsLabel}`;
         bestLine.className = 'best-line';
       }
 
