@@ -621,6 +621,7 @@
     // Prevent double-fire on mobile (touchend blocks synthetic click)
     card.addEventListener('touchend', e => {
       if (e.target === slider) return;
+      if (e.target.closest('#share-btn')) return;
       e.preventDefault();
       handleAction();
     }, { passive: false });
