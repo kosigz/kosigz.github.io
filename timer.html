@@ -339,6 +339,26 @@
       color: #7ab648;
     }
 
+    .share-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-family: 'Cabin Sketch', cursive;
+      font-size: 13px;
+      color: rgba(20,20,20,0.55);
+      background: rgba(255,255,255,0.45);
+      border: none;
+      border-radius: 20px;
+      padding: 7px 16px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      margin-bottom: 16px;
+    }
+    .share-btn:hover {
+      background: rgba(255,255,255,0.7);
+      color: #1a1a1a;
+    }
+
     .hidden { display: none !important; }
 
     @media (max-width: 400px) {
@@ -423,6 +443,9 @@
 
           <div class="rating-text" id="rating-text">sharp</div>
           <div class="best-line" id="best-line"></div>
+          <button class="share-btn" id="share-btn" onclick="shareToX(event)">
+            <i class="fa-brands fa-x-twitter"></i> share
+          </button>
           <p class="hint">space &nbsp;·&nbsp; tap &nbsp;·&nbsp; click to adjust</p>
         </div>
 
@@ -471,6 +494,7 @@
     }
 
     function getRating(delta) {
+      if (delta ===   0) return { text: 'legendary',   color: '#6a0dad' };
       if (delta <=  15) return { text: 'psychic',      color: '#8c2d3a' };
       if (delta <=  40) return { text: 'uncanny',      color: '#8c2d3a' };
       if (delta <= 100) return { text: 'razor sharp',  color: '#7ab648' };
@@ -517,7 +541,7 @@
         absDelta >  450 ? '#c0392b' : '#1a1a1a';
 
       const rating = getRating(absDelta);
-      ratingText.textContent = rating.text;
+      ratingText.textContent = getRatingEmoji(absDelta) + ' ' + rating.text;
       ratingText.style.color = rating.color;
 
       // Best tracking
@@ -544,6 +568,46 @@
 
       state = 'result';
       showScreen('result');
+    }
+
+    function getRatingEmoji(delta) {
+      if (delta ===   0) return '👑';
+      if (delta <=  15) return '🔮';
+      if (delta <=  40) return '⚡';
+      if (delta <= 100) return '🎯';
+      if (delta <= 200) return '✨';
+      if (delta <= 450) return '🕐';
+      if (delta <= 900) return '😅';
+      return '💀';
+    }
+
+    function buildTweetText(targetMs, actualMs, absDelta, signedDelta, ratingLabel) {
+      const targetSec = (targetMs / 1000).toFixed(targetMs % 1000 === 0 ? 0 : 1);
+      const sign = signedDelta >= 0 ? '+' : '−';
+      const emoji = getRatingEmoji(absDelta);
+      const lines = [
+        `${emoji} Time It`,
+        ``,
+        `⏱ target: ${targetMs.toLocaleString()} ms (${targetSec}s)`,
+        `🫳 my stop: ${actualMs.toLocaleString()} ms`,
+        `📏 off by: ${sign}${absDelta.toLocaleString()} ms`,
+        ``,
+        `rating: ${ratingLabel}`,
+        ``,
+        `kosigz.github.io/timer`,
+      ];
+      return lines.join('\n');
+    }
+
+    function shareToX(e) {
+      e.stopPropagation();
+      const targetMs  = parseInt(resTarget.textContent.replace(/,/g, ''));
+      const actualMs  = parseInt(resActual.textContent.replace(/,/g, ''));
+      const absDelta  = Math.abs(actualMs - targetMs);
+      const signed    = actualMs - targetMs;
+      const text = buildTweetText(targetMs, actualMs, absDelta, signed, ratingText.textContent);
+      const url  = 'https://x.com/intent/tweet?text=' + encodeURIComponent(text);
+      window.open(url, '_blank', 'noopener,noreferrer');
     }
 
     function handleAction() {
