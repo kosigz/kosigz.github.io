@@ -151,7 +151,7 @@
       top: -50px;
     }
 
-    .mirror { transform: scale(-1, 1); }
+    .mirror { /* direction flag — transform handled in JS */ }
 
     /* ─── Dock footer ────────────────────────────────────────────────── */
 
@@ -382,38 +382,58 @@
     const chopper = document.querySelector('.chopper');
     const quoteEl  = document.querySelector('.quote');
 
+    let posX, posY, vx = 0, vy = 0, roll = 0;
+
     document.addEventListener('keydown', function(e) {
-      const left = parseFloat(chopper.style.left);
-      const top  = parseFloat(chopper.style.top);
       switch (e.key) {
         case 'ArrowLeft':
-          chopper.style.left = (left - 30) + 'px';
+          vx -= 4;
           chopper.classList.remove('mirror');
           break;
         case 'ArrowRight':
-          chopper.style.left = (left + 30) + 'px';
+          vx += 4;
           chopper.classList.add('mirror');
           break;
         case 'ArrowUp':
-          chopper.style.top = (top - 10) + 'px';
+          vy -= 4;
           break;
         case 'ArrowDown':
-          if (top < 160) chopper.style.top = (top + 10) + 'px';
+          vy += 4;
           break;
         default: return;
       }
       e.preventDefault();
     });
 
-    function loop(epoch) {
-      if (epoch % 100 === 0) {
+    let epoch = 0;
+    function loop() {
+      epoch++;
+      if (epoch % 300 === 0) {
         quoteEl.textContent = quotes[Math.floor(Math.random() * quotes.length)];
       }
-      const xShift = Math.round(2 * Math.random()) - 1;
-      const yShift = Math.round(2 * Math.random()) - 1;
-      chopper.style.left = (parseFloat(chopper.style.left) + yShift) + 'px';
-      chopper.style.top  = (parseFloat(chopper.style.top)  + xShift) + 'px';
-      setTimeout(() => loop(epoch + 1), 50);
+      vx += (Math.random() - 0.5) * 0.15;
+      vy += (Math.random() - 0.5) * 0.15;
+      vx *= 0.97;
+      vy *= 0.97;
+      vx = Math.max(-1.5, Math.min(1.5, vx));
+      vy = Math.max(-1.5, Math.min(1.5, vy));
+      posX += vx;
+      posY += vy;
+      const pr = chopper.parentElement.getBoundingClientRect();
+      const bMinX = -pr.left;
+      const bMaxX = window.innerWidth - pr.left - 80;
+      const bMinY = -pr.top - 20;
+      if (posX < bMinX) { posX = bMinX; vx =  Math.abs(vx) * 0.5; }
+      if (posX > bMaxX) { posX = bMaxX; vx = -Math.abs(vx) * 0.5; }
+      if (posY < bMinY) { posY = bMinY; vy =  Math.abs(vy) * 0.5; }
+      if (posY > 160)   { posY = 160;   vy = -Math.abs(vy) * 0.5; }
+      const targetRoll = Math.max(-8, Math.min(8, 2.5 - Math.abs(vx) * Math.abs(vx) * 1.5 - vy * 0.5));
+      roll += (targetRoll - roll) * 0.08;
+      const scaleX = chopper.classList.contains('mirror') ? -1 : 1;
+      chopper.style.transform = `rotate(${(scaleX * roll).toFixed(2)}deg) scaleX(${scaleX})`;
+      chopper.style.left = posX + 'px';
+      chopper.style.top  = posY + 'px';
+      requestAnimationFrame(loop);
     }
 
     document.getElementById('menu-toggle').addEventListener('click', function(e) {
@@ -429,9 +449,11 @@
 
     window.addEventListener('load', function() {
       const computed = getComputedStyle(chopper);
-      chopper.style.left = computed.left;
-      chopper.style.top  = computed.top;
-      loop(0);
+      posX = parseFloat(computed.left);
+      posY = parseFloat(computed.top);
+      chopper.style.left = posX + 'px';
+      chopper.style.top  = posY + 'px';
+      requestAnimationFrame(loop);
 
       // Key out white background from pencil sketch portrait
       const img = document.querySelector('.portrait img');
