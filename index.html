@@ -143,6 +143,24 @@
       }
     }
 
+    /* ─── Click ripple ──────────────────────────────────────────────── */
+
+    @keyframes ripple {
+      0%   { transform: translate(-50%, -50%) scale(0); opacity: 0.5; }
+      100% { transform: translate(-50%, -50%) scale(1);  opacity: 0;   }
+    }
+
+    .ripple {
+      position: fixed;
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.7);
+      pointer-events: none;
+      animation: ripple 0.6s ease-out forwards;
+      z-index: 9999;
+    }
+
     /* ─── Helicopter ─────────────────────────────────────────────────── */
 
     .chopper {
@@ -525,6 +543,19 @@
 
       demoStep();
     })();
+
+    document.addEventListener('click', function(e) {
+      [0, 150, 300].forEach(function(delay) {
+        setTimeout(function() {
+          const r = document.createElement('div');
+          r.className = 'ripple';
+          r.style.left = e.clientX + 'px';
+          r.style.top  = e.clientY + 'px';
+          document.body.appendChild(r);
+          r.addEventListener('animationend', () => r.remove());
+        }, delay);
+      });
+    });
   </script>
 
 </body>
