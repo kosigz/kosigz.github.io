@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Charles Schwab</title>
+  <style>
+    :root {
+      --blue: #0095BD;
+      --navy: #003B5C;
+      --green: #3B7A27;
+      --green-h: #2F6420;
+      --pos: #2A8C4A;
+      --neg: #C0392B;
+      --border: #E5E5EA;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    body {
+      font-family: -apple-system,'SF Pro Text','Helvetica Neue',Arial,sans-serif;
+      background:#fff; max-width:430px; margin:0 auto; min-height:100vh;
+    }
+
+    /* ═══ SETUP / LOGIN ═══ */
+    #setup { min-height:100vh; background:#EBEBEB; display:flex; flex-direction:column; overflow-y:auto; }
+
+    /* Schwab header bar */
+    .s-topbar {
+      background:var(--navy); padding:12px 18px;
+      display:flex; align-items:center; gap:9px; flex-shrink:0;
+    }
+    .s-topbar-word { font-size:20px; font-weight:900; color:white; letter-spacing:-.4px; }
+
+    /* Greeting */
+    .s-greeting { font-size:24px; font-weight:600; color:#1A1A1A; text-align:center; padding:22px 0 16px; }
+
+    /* Form body */
+    .s-body { padding:0 22px 20px; flex:1; }
+
+    .s-field-lbl { font-size:13px; color:#444; margin-bottom:7px; display:block; }
+    .s-field-inp {
+      width:100%; background:white; border:1px solid #B0B0B0; border-radius:10px;
+      padding:14px; font-size:18px; color:#1A1A1A; outline:none; font-family:inherit;
+      transition:border-color .2s;
+    }
+    .s-field-inp:focus { border-color:var(--blue); box-shadow:0 0 0 3px rgba(0,149,189,.12); }
+
+    .s-remember {
+      display:flex; align-items:center; justify-content:space-between;
+      margin:14px 0 20px; padding:2px 0;
+    }
+    .s-remember-lbl { font-size:15px; color:#1A1A1A; }
+    .ios-toggle { width:51px; height:31px; background:#34C759; border-radius:16px; position:relative; cursor:pointer; flex-shrink:0; }
+    .ios-toggle::after { content:''; position:absolute; top:2px; right:2px; width:27px; height:27px; background:white; border-radius:50%; box-shadow:0 1px 4px rgba(0,0,0,.25); }
+
+    /* Tier section */
+    .s-tier-lbl { font-size:13px; color:#444; margin-bottom:10px; display:block; }
+    .tier-box { background:white; border-radius:12px; border:1px solid #C7C7CC; padding:14px 16px 12px; margin-bottom:0; }
+    .tp-row { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+    .tp-emoji { font-size:32px; flex-shrink:0; }
+    .tp-name  { font-size:16px; font-weight:700; color:#1A1A1A; }
+    .tp-amount{ font-size:22px; font-weight:800; color:var(--navy); letter-spacing:-.5px; }
+    .tp-amount.neg{ color:var(--neg); }
+    .tp-amount.gold{ color:#9A6E00; }
+    .tp-amount.purple{ color:#6A2DA0; }
+    .tp-vibe  { font-size:12px; color:#888; margin-top:3px; font-style:italic; }
+
+    .wealth-slider {
+      -webkit-appearance:none; appearance:none;
+      width:100%; height:5px; border-radius:3px; outline:none; cursor:pointer;
+      background:linear-gradient(to right,var(--blue) 50%,#DDD 50%);
+    }
+    .wealth-slider::-webkit-slider-thumb {
+      -webkit-appearance:none; width:26px; height:26px; border-radius:50%;
+      background:white; border:2.5px solid var(--navy);
+      box-shadow:0 2px 6px rgba(0,0,0,.2); cursor:pointer;
+    }
+    .wealth-slider::-moz-range-thumb {
+      width:26px; height:26px; border-radius:50%;
+      background:white; border:2.5px solid var(--navy);
+      box-shadow:0 2px 6px rgba(0,0,0,.2); cursor:pointer;
+    }
+    .slider-lbls { display:flex; justify-content:space-between; margin-top:9px; user-select:none; }
+    .sl-lbl { font-size:10px; font-weight:600; color:#BBB; text-align:center; flex:1; cursor:pointer; text-transform:uppercase; letter-spacing:.15px; transition:color .15s; }
+    .sl-lbl.on { color:var(--navy); }
+
+    .s-continue-btn {
+      display:block; width:100%; padding:15px; margin-top:20px;
+      background:var(--green); color:white; border:none; border-radius:12px;
+      font-size:18px; font-weight:600; cursor:pointer; font-family:inherit; transition:background .2s;
+    }
+    .s-continue-btn:hover:not(:disabled) { background:var(--green-h); }
+    .s-continue-btn:disabled { background:#A5C49A; cursor:not-allowed; }
+    .s-continue-btn:active:not(:disabled) { transform:scale(.99); }
+
+    .s-get-started { text-align:center; padding:20px 0 14px; font-size:16px; color:var(--blue); cursor:pointer; }
+
+    /* Login footer */
+    .s-footer { margin:0 22px; border-top:1px solid #C0C0C0; }
+    .s-footer-safe { display:flex; align-items:center; justify-content:center; gap:6px; padding:14px 0; font-size:14px; color:#555; }
+    .s-footer-link { padding:13px 0; font-size:15px; color:var(--blue); border-bottom:1px solid #C0C0C0; cursor:pointer; display:block; }
+    .s-footer-legal { padding:12px 0 24px; font-size:11px; color:#888; line-height:1.55; }
+    .s-footer-legal a { color:var(--blue); }
+
+    /* ═══ ACCOUNT ═══ */
+    #account { display:none; background:white; min-height:100vh; }
+
+    .app-hdr { display:flex; align-items:center; justify-content:space-between; padding:10px 16px 8px; }
+    .hdr-icon { width:34px; height:34px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+    .hdr-title { font-size:17px; font-weight:700; }
+    .hdr-right { display:flex; align-items:center; gap:14px; }
+
+    .segment { display:flex; margin:0 16px 8px; background:#EFEFF4; border-radius:9px; padding:2px; }
+    .seg-btn { flex:1; padding:7px 0; border:none; border-radius:7px; font-size:15px; font-weight:500; cursor:pointer; background:transparent; color:#444; font-family:inherit; }
+    .seg-btn.on { background:white; color:#000; font-weight:600; box-shadow:0 1px 4px rgba(0,0,0,.18); }
+
+    /* Full name bar */
+    .name-bar { padding:2px 16px 12px; font-size:22px; font-weight:700; color:#1A1A1A; letter-spacing:-.3px; }
+
+    .bal-area { padding:0 16px 10px; }
+    .bal-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:2px; }
+    .bal-hdr-l { display:flex; align-items:center; gap:5px; font-size:14px; color:#555; }
+    .info-dot { width:15px; height:15px; background:var(--blue); border-radius:50%; color:white; font-size:10px; font-weight:700; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .bal-main { display:flex; align-items:center; gap:10px; margin-bottom:6px; }
+    .bal-num { font-size:34px; font-weight:700; letter-spacing:-1.5px; color:#000; line-height:1; }
+    .eye-btn { cursor:pointer; color:var(--blue); opacity:.8; }
+    .day-lbl { font-size:14px; color:#555; margin-bottom:2px; }
+    .day-val { font-size:16px; font-weight:600; }
+    .pos { color:var(--pos); }
+    .neg { color:var(--neg); }
+
+    .chart-wrap { position:relative; }
+    #app-chart { width:100%; height:175px; display:block; }
+    .chart-x { display:flex; justify-content:space-between; padding:2px 14px 0; font-size:12px; color:#999; }
+    .chart-dots { display:flex; justify-content:center; gap:6px; margin:8px 0 4px; }
+    .cdot { width:8px; height:8px; border-radius:50%; background:#D0D0D0; }
+    .cdot.on { background:var(--blue); }
+
+    .act-row { display:flex; border-top:1px solid var(--border); border-bottom:1px solid var(--border); margin:8px 0 0; }
+    .act-item { flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; padding:14px 0; cursor:pointer; color:var(--blue); font-size:13px; font-weight:500; }
+    .act-item:active { background:rgba(0,149,189,.07); }
+    .act-item+.act-item { border-left:1px solid var(--border); }
+
+    .accts-hdr { display:flex; justify-content:space-between; align-items:baseline; padding:14px 16px 8px; background:#F5F5F7; border-top:1px solid var(--border); }
+    .accts-hdr-l { font-size:16px; font-weight:700; }
+    .accts-hdr-r { font-size:12px; color:#888; }
+
+    .acct-row { display:flex; align-items:center; padding:14px 12px 14px 16px; border-bottom:1px solid var(--border); border-left:4px solid transparent; cursor:pointer; }
+    .acct-row:active { background:#F9F9F9; }
+    .ar-l { flex:1; min-width:0; }
+    .ar-name { font-size:15px; font-weight:600; color:#1A1A1A; }
+    .ar-sub  { font-size:13px; color:#888; margin-top:2px; }
+    .ar-r    { text-align:right; flex-shrink:0; }
+    .ar-val  { font-size:15px; font-weight:600; color:#1A1A1A; }
+    .ar-chg  { font-size:13px; margin-top:2px; }
+    .ar-more { font-size:20px; color:#BBBBC0; margin-left:10px; letter-spacing:1.5px; }
+
+    .total-row { display:flex; justify-content:space-between; align-items:flex-start; padding:16px 16px 90px; }
+    .tr-name { font-size:16px; font-weight:700; }
+    .tr-sub  { font-size:13px; color:#888; margin-top:3px; }
+    .tr-val  { font-size:17px; font-weight:700; text-align:right; }
+    .tr-chg  { font-size:13px; margin-top:3px; text-align:right; }
+
+    .bot-nav { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:430px; background:white; border-top:1px solid var(--border); display:flex; padding:8px 0 env(safe-area-inset-bottom,12px); z-index:100; }
+    .nav-item { flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer; font-size:11px; color:#888; position:relative; }
+    .nav-item.on { color:var(--blue); }
+    .nav-badge { position:absolute; top:-2px; right:14px; background:var(--neg); color:white; font-size:10px; font-weight:800; border-radius:10px; min-width:17px; height:17px; display:flex; align-items:center; justify-content:center; padding:0 4px; }
+
+    .toast { position:fixed; bottom:88px; left:50%; transform:translateX(-50%) translateY(50px); background:rgba(30,30,30,.92); color:white; padding:11px 20px; border-radius:20px; font-size:14px; font-weight:500; opacity:0; transition:all .3s cubic-bezier(.34,1.56,.64,1); z-index:200; white-space:nowrap; }
+    .toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════ LOGIN / SETUP ═══════════════════ -->
+<div id="setup">
+
+  <div class="s-topbar">
+    <svg width="24" height="24" viewBox="0 0 32 32">
+      <path d="M16 16 L16 2 A14 14 0 0 1 30 16 Z" fill="#F5A623"/>
+      <path d="M16 16 L30 16 A14 14 0 0 1 16 30 Z" fill="#00C4A0"/>
+      <path d="M16 16 L16 30 A14 14 0 0 1 2 16 Z" fill="#4A90D9"/>
+      <path d="M16 16 L2 16 A14 14 0 0 1 16 2 Z" fill="#9B59B6"/>
+    </svg>
+    <div class="s-topbar-word">schwab</div>
+  </div>
+
+  <div class="s-greeting" id="s-greeting">Good Afternoon</div>
+
+  <div class="s-body">
+
+    <label class="s-field-lbl" for="name-inp">Login ID</label>
+    <input class="s-field-inp" id="name-inp" type="text"
+           placeholder="Enter your full name" autocomplete="name"/>
+
+    <div class="s-remember">
+      <span class="s-remember-lbl">Remember Login ID</span>
+      <div class="ios-toggle"></div>
+    </div>
+
+    <label class="s-tier-lbl">Portfolio Tier</label>
+    <div class="tier-box">
+      <div class="tp-row">
+        <div class="tp-emoji" id="tp-emoji">💰</div>
+        <div>
+          <div class="tp-name"   id="tp-name">Pretty Rich</div>
+          <div class="tp-amount" id="tp-amount">~$1M</div>
+          <div class="tp-vibe"   id="tp-vibe">"yeah I do alright"</div>
+        </div>
+      </div>
+      <input class="wealth-slider" id="wealth-slider" type="range"
+             min="0" max="4" step="1" value="2" oninput="onSlider(this.value)">
+      <div class="slider-lbls">
+        <span class="sl-lbl"    onclick="setSlider(0)">Broke</span>
+        <span class="sl-lbl"    onclick="setSlider(1)">Surviving</span>
+        <span class="sl-lbl on" onclick="setSlider(2)">Rich</span>
+        <span class="sl-lbl"    onclick="setSlider(3)">Very Rich</span>
+        <span class="sl-lbl"    onclick="setSlider(4)">Insane</span>
+      </div>
+    </div>
+
+    <button class="s-continue-btn" id="gen-btn" disabled onclick="generate()">Continue</button>
+  </div>
+
+  <div class="s-get-started">Get Started at Schwab</div>
+
+  <div class="s-footer">
+    <div class="s-footer-safe">
+      <svg width="12" height="15" viewBox="0 0 13 16" fill="#555"><path d="M11 7H2V5a4.5 4.5 0 0 1 9 0v2zm1 1v6a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V8h11zm-6 2v2.5a.5.5 0 0 0 1 0V10a.5.5 0 0 0-1 0z"/></svg>
+      SchwabSafe®
+    </div>
+    <a class="s-footer-link">Privacy &amp; Terms of Use</a>
+    <a class="s-footer-link">International Customers</a>
+    <div class="s-footer-legal">
+      © 2026 Charles Schwab &amp; Co., Inc. <a>Member SIPC</a>. All rights reserved.
+      Unauthorized access is prohibited. Usage will be monitored. Remember Login ID
+      requires use of device storage. v16.4.0.28
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════ ACCOUNT ═══════════════════ -->
+<div id="account">
+
+  <div class="app-hdr">
+    <div class="hdr-icon" onclick="goBack()">
+      <svg width="30" height="30" viewBox="0 0 30 30">
+        <circle cx="15" cy="15" r="14" fill="#E8E8E8"/>
+        <circle cx="15" cy="12" r="5" fill="#A0A0A0"/>
+        <path d="M5 26 Q5 20 15 20 Q25 20 25 26" fill="#A0A0A0"/>
+      </svg>
+    </div>
+    <div class="hdr-title">Accounts</div>
+    <div class="hdr-right">
+      <svg width="28" height="28" viewBox="0 0 32 32">
+        <path d="M16 16 L16 2 A14 14 0 0 1 30 16 Z" fill="#F5A623"/>
+        <path d="M16 16 L30 16 A14 14 0 0 1 16 30 Z" fill="#00C4A0"/>
+        <path d="M16 16 L16 30 A14 14 0 0 1 2 16 Z" fill="#4A90D9"/>
+        <path d="M16 16 L2 16 A14 14 0 0 1 16 2 Z" fill="#9B59B6"/>
+      </svg>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round">
+        <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+    </div>
+  </div>
+
+  <div class="segment">
+    <button class="seg-btn on">Accounts</button>
+    <button class="seg-btn">Dashboard</button>
+  </div>
+
+  <div class="name-bar" id="name-bar">—</div>
+
+  <div class="bal-area">
+    <div class="bal-hdr">
+      <div class="bal-hdr-l">
+        <span>Total Value</span>
+        <span class="info-dot">i</span>
+      </div>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0095BD" stroke-width="2.2" stroke-linecap="round" style="cursor:pointer">
+        <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+      </svg>
+    </div>
+    <div class="bal-main">
+      <div class="bal-num" id="bal-num">—</div>
+      <svg class="eye-btn" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0095BD" stroke-width="2" stroke-linecap="round">
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+      </svg>
+    </div>
+    <div class="day-lbl">Day Change</div>
+    <div class="day-val" id="day-val">—</div>
+  </div>
+
+  <div class="chart-wrap">
+    <canvas id="app-chart"></canvas>
+    <div class="chart-x" id="chart-x"></div>
+    <div class="chart-dots"><div class="cdot on"></div><div class="cdot"></div></div>
+  </div>
+
+  <div class="act-row">
+    <div class="act-item">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0095BD" stroke-width="2" stroke-linecap="round">
+        <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+        <polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+      </svg>Transfer
+    </div>
+    <div class="act-item">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0095BD" stroke-width="2" stroke-linecap="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>Deposit
+    </div>
+    <div class="act-item" onclick="copyLink()">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0095BD" stroke-width="2" stroke-linecap="round">
+        <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+      </svg>Share
+    </div>
+  </div>
+
+  <div class="accts-hdr">
+    <span class="accts-hdr-l">Accounts</span>
+    <span class="accts-hdr-r">Value, Day Change<sup>1-12</sup></span>
+  </div>
+
+  <div id="acct-rows"></div>
+
+  <div class="total-row">
+    <div>
+      <div class="tr-name">Total<sup>2</sup></div>
+      <div class="tr-sub">Day Change</div>
+    </div>
+    <div>
+      <div class="tr-val" id="total-val">—</div>
+      <div class="tr-chg" id="total-chg">—</div>
+    </div>
+  </div>
+
+  <div class="bot-nav">
+    <div class="nav-item on">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="#0095BD">
+        <rect x="2" y="12" width="4" height="10" rx="1"/>
+        <rect x="10" y="8" width="4" height="14" rx="1"/>
+        <rect x="18" y="4" width="4" height="18" rx="1"/>
+      </svg>Accounts
+    </div>
+    <div class="nav-item">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.8">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+      </svg>Watchlist
+    </div>
+    <div class="nav-item">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.8" stroke-linecap="round">
+        <line x1="12" y1="5" x2="12" y2="19"/>
+        <polyline points="5 12 12 19 19 12"/>
+        <polyline points="5 8 12 1 19 8" style="opacity:.35"/>
+      </svg>Trade
+    </div>
+    <div class="nav-item">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.8">
+        <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+      </svg>Markets
+    </div>
+    <div class="nav-item" style="position:relative">
+      <span style="font-size:22px;color:#888;letter-spacing:1px;line-height:1.2">•••</span>
+      <span class="nav-badge">6</span>More
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Tier preview metadata (setup slider) ──
+const TIER_META = [
+  { emoji:'😬', name:'Not Great',       amount:'~$200',     amtCls:'neg',    vibe:'"it\'s fine, I\'m fine"',       lbl:'Broke'    },
+  { emoji:'😊', name:'Getting By',      amount:'~$25K',     amtCls:'',       vibe:'"slowly but surely"',           lbl:'Surviving'},
+  { emoji:'💰', name:'Pretty Rich',     amount:'~$1M',      amtCls:'',       vibe:'"yeah I do alright"',           lbl:'Rich'     },
+  { emoji:'🤑', name:'Super Rich',      amount:'~$20M',     amtCls:'gold',   vibe:'"checked this morning"',        lbl:'Very Rich'},
+  { emoji:'👑', name:'Obscenely Rich',  amount:'~$100M',    amtCls:'purple', vibe:'"money makes money"',           lbl:'Insane'   },
+];
+
+// Ranges for random generation within each tier
+const TIER_RANGES = [
+  { min: 42,         max: 490,          vol: 0.028, negBias: 0.65 },
+  { min: 7500,       max: 44000,        vol: 0.016, negBias: 0.40 },
+  { min: 780000,     max: 1550000,      vol: 0.013, negBias: 0.30 },
+  { min: 11000000,   max: 29000000,     vol: 0.012, negBias: 0.25 },
+  { min: 52000000,   max: 148000000,    vol: 0.011, negBias: 0.20 },
+];
+
+// ── Seeded RNG (FNV-1a hash for name → seed) ──
+class SR {
+  constructor(s) { this.s = (s >>> 0) || 1; }
+  n() { this.s = (Math.imul(1664525, this.s) + 1013904223) >>> 0; return this.s / 0x100000000; }
+  norm() { let u, v; do { u = this.n(); } while (!u); do { v = this.n(); } while (!v); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+}
+
+function nameToSeed(str) {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+  return h || 1;
+}
+
+// ── Generate all account data from name + tier ──
+function generateData(name, tierIdx) {
+  const baseSeed = nameToSeed(name.toLowerCase().trim()) ^ (tierIdx * 0x7654321);
+  const rng = new SR(baseSeed);
+  const { min, max, vol, negBias } = TIER_RANGES[tierIdx];
+
+  // Random total within range (name-seeded, reproducible)
+  const total = Math.round((min + rng.n() * (max - min)) * 100) / 100;
+
+  // Random 6-month chart return: negative or positive
+  const sixMonthReturn = rng.n() < negBias
+    ? -(0.04 + rng.n() * 0.28)   // down: -4% to -32%
+    : 0.04 + rng.n() * 0.38;     // up: +4% to +42%
+  const chartStart = total / (1 + sixMonthReturn);
+
+  // Random day change: roughly normal, ±2%
+  const rawPct = (rng.n() - 0.5) * 3.2;
+  const dayChangePct = Math.max(-2.5, Math.min(2.5, rawPct));
+  const dayGain = Math.round(total * dayChangePct / 100 * 100) / 100;
+  const actualDayPct = total > 0 ? dayGain / total * 100 : 0;
+
+  // Chart seed (offset so it differs from amount seed)
+  const chartSeed = baseSeed ^ 0xDEADBEEF;
+
+  // Account rows
+  const acctRng = new SR(baseSeed ^ 0xABCDEF01);
+  const acctNum = () => Math.floor(acctRng.n() * 9000 + 1000).toString();
+
+  const firstName = name.split(' ')[0];
+  let accounts;
+
+  if (tierIdx === 0) {
+    const chkVal = Math.round(Math.max(0.50, Math.min(total * 0.04, acctRng.n() * 3 + 0.5)) * 100) / 100;
+    accounts = [
+      { name: 'Individual',      sub: `...${acctNum()} Brokerage`,                val: Math.round((total - chkVal) * 100) / 100, gain: dayGain, pct: dayChangePct, color: '#0095BD' },
+      { name: `${firstName} Checking`, sub: `...${acctNum()} Schwab Bank\nChecking`, val: chkVal, gain: 0, pct: 0, color: '#4A90D9' },
+    ];
+  } else {
+    const checkRatio = 0.015 + acctRng.n() * 0.065;
+    const chkVal = Math.round(total * checkRatio * 100) / 100;
+    let brokerageVal = Math.round((total - chkVal) * 100) / 100;
+
+    accounts = [
+      { name: 'Individual',           sub: `...${acctNum()} Brokerage`,                val: brokerageVal, gain: dayGain, pct: dayChangePct, color: '#0095BD' },
+      { name: `${firstName} Checking`, sub: `...${acctNum()} Schwab Bank\nChecking`,   val: chkVal,       gain: 0,       pct: 0,            color: '#4A90D9' },
+    ];
+
+    // Equity awards for obscene tier
+    if (tierIdx === 4) {
+      const eqRatio = 0.008 + acctRng.n() * 0.022;
+      const eqVal = Math.round(total * eqRatio * 100) / 100;
+      accounts[0].val = Math.round((total - chkVal - eqVal) * 100) / 100;
+      accounts.push({ name: 'Equity Awards', sub: `...${acctNum()} Equity Awards`, val: eqVal, gain: 0, pct: 0, color: '#9B59B6' });
+    }
+  }
+
+  return { total, dayGain, dayPct: actualDayPct, chartStart, chartEnd: total, chartSeed, vol, accounts };
+}
+
+// ── Generate 6-month price path ──
+function genPrices(chartStart, chartEnd, chartSeed, vol) {
+  const rng = new SR(chartSeed);
+  const N = 130, pts = [chartStart];
+  const drift = Math.log(chartEnd / chartStart) / N;
+  for (let i = 1; i < N; i++) pts.push(pts[i - 1] * Math.exp(drift + vol * rng.norm()));
+  pts[N - 1] = chartEnd;
+  return pts;
+}
+
+// ── Chart drawing ──
+let animRef = null, prices = [], chartIsPos = true;
+
+function drawChart(pts, prog, isPos) {
+  const c = document.getElementById('app-chart'), ctx = c.getContext('2d');
+  const dpr = window.devicePixelRatio || 1, rect = c.getBoundingClientRect();
+  c.width = rect.width * dpr; c.height = rect.height * dpr; ctx.scale(dpr, dpr);
+  const W = rect.width, H = rect.height, pT = 10, pB = 2, cH = H - pT - pB;
+  const n = Math.max(2, Math.ceil(pts.length * prog)), vis = pts.slice(0, n);
+  const mn = Math.min(...vis) * .985, mx = Math.max(...vis) * 1.015, rng = mx - mn;
+  const px = i => (i / (pts.length - 1)) * W;
+  const py = v => pT + cH - ((v - mn) / rng) * cH;
+  ctx.clearRect(0, 0, W, H);
+  const col = isPos ? '#0095BD' : '#C0392B';
+  const grad = ctx.createLinearGradient(0, pT, 0, pT + cH);
+  grad.addColorStop(0, isPos ? 'rgba(0,149,189,.20)' : 'rgba(192,57,43,.20)');
+  grad.addColorStop(1, 'rgba(255,255,255,0)');
+  function path() {
+    ctx.beginPath(); ctx.moveTo(px(0), py(vis[0]));
+    for (let i = 1; i < vis.length; i++) { const cpx = (px(i-1)+px(i))/2; ctx.bezierCurveTo(cpx, py(vis[i-1]), cpx, py(vis[i]), px(i), py(vis[i])); }
+  }
+  path(); ctx.lineTo(px(vis.length-1), pT+cH); ctx.lineTo(0, pT+cH); ctx.closePath(); ctx.fillStyle = grad; ctx.fill();
+  path(); ctx.strokeStyle = col; ctx.lineWidth = 2.2; ctx.lineJoin = 'round'; ctx.stroke();
+  if (prog >= .98) {
+    const ex = px(vis.length-1), ey = py(vis[vis.length-1]);
+    ctx.beginPath(); ctx.arc(ex, ey, 5, 0, Math.PI*2); ctx.fillStyle = col; ctx.fill();
+    ctx.beginPath(); ctx.arc(ex, ey, 5, 0, Math.PI*2); ctx.strokeStyle = 'white'; ctx.lineWidth = 2; ctx.stroke();
+  }
+}
+
+function animChart(pts, isPos) {
+  if (animRef) cancelAnimationFrame(animRef);
+  const dur = 850, t0 = performance.now();
+  function step(now) { const t = Math.min((now-t0)/dur, 1), e = t<.5?2*t*t:-1+(4-2*t)*t; drawChart(pts, e, isPos); if (t < 1) animRef = requestAnimationFrame(step); }
+  animRef = requestAnimationFrame(step);
+}
+
+window.addEventListener('resize', () => { if (prices.length) drawChart(prices, 1, chartIsPos); });
+
+// ── Slider ──
+function onSlider(val) {
+  const v = parseInt(val), m = TIER_META[v];
+  document.getElementById('tp-emoji').textContent  = m.emoji;
+  document.getElementById('tp-name').textContent   = m.name;
+  const amtEl = document.getElementById('tp-amount');
+  amtEl.textContent = m.amount;
+  amtEl.className = 'tp-amount' + (m.amtCls ? ' ' + m.amtCls : '');
+  document.getElementById('tp-vibe').textContent   = m.vibe;
+  document.querySelectorAll('.sl-lbl').forEach((t, i) => t.classList.toggle('on', i === v));
+  const pct = (v / 4) * 100;
+  document.getElementById('wealth-slider').style.background =
+    `linear-gradient(to right,var(--blue) 0%,var(--blue) ${pct}%,#DDD ${pct}%)`;
+}
+function setSlider(v) { document.getElementById('wealth-slider').value = v; onSlider(v); }
+
+// ── Time-based greeting ──
+(function () {
+  const h = new Date().getHours();
+  document.getElementById('s-greeting').textContent =
+    h < 12 ? 'Good Morning' : h < 17 ? 'Good Afternoon' : 'Good Evening';
+})();
+
+// ── Enable/disable button ──
+document.getElementById('name-inp').addEventListener('input', function () {
+  document.getElementById('gen-btn').disabled = !this.value.trim();
+});
+document.getElementById('name-inp').addEventListener('keydown', function (e) {
+  if (e.key === 'Enter' && this.value.trim()) generate();
+});
+
+// ── Format ──
+function fmtBal(v) { return '$' + v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function fmtShort(v) {
+  if (v >= 1e9) return '$' + (v/1e9).toFixed(2) + 'B';
+  if (v >= 1e6) return '$' + (v/1e6).toFixed(3).replace(/\.?0+$/, '') + 'M';
+  if (v >= 1e3) return '$' + (v/1e3).toFixed(1) + 'K';
+  return '$' + v.toFixed(0);
+}
+function fmtChg(gain, pct) {
+  const s = gain >= 0 ? '+' : '-';
+  return `${s}$${Math.abs(gain).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${s}${Math.abs(pct).toFixed(2)}%)`;
+}
+
+// ── Generate chart X-axis labels (6 months back) ──
+function buildChartXLabels() {
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const today = new Date();
+  const labels = [];
+  for (let m = 5; m >= 0; m--) {
+    const d = new Date(today.getFullYear(), today.getMonth() - m, 1);
+    labels.push(m === 5 ? `${months[d.getMonth()]} '${String(d.getFullYear()).slice(-2)}` : months[d.getMonth()]);
+  }
+  const el = document.getElementById('chart-x');
+  el.innerHTML = labels.map(l => `<span>${l}</span>`).join('');
+}
+
+// ── Generate ──
+function generate() {
+  const name = document.getElementById('name-inp').value.trim();
+  const idx = parseInt(document.getElementById('wealth-slider').value);
+  if (!name) return;
+  buildAccount(name, idx);
+  const url = new URL(location.href);
+  url.searchParams.set('n', name); url.searchParams.set('t', idx);
+  history.replaceState(null, '', url.toString());
+}
+
+// ── Build account screen ──
+function buildAccount(name, idx) {
+  const d = generateData(name, idx);
+  const pos = d.dayGain >= 0;
+  chartIsPos = pos;
+
+  document.getElementById('name-bar').textContent = name;
+  document.getElementById('bal-num').textContent = fmtBal(d.total);
+  const dv = document.getElementById('day-val');
+  dv.textContent = fmtChg(d.dayGain, d.dayPct);
+  dv.className = 'day-val ' + (pos ? 'pos' : 'neg');
+
+  // Account rows
+  const container = document.getElementById('acct-rows');
+  container.innerHTML = '';
+  for (const a of d.accounts) {
+    const chgText = a.gain === 0 && a.pct === 0 ? '$0.00 (0.00%)' : fmtChg(a.gain, a.pct);
+    const chgCls = a.gain < 0 ? 'neg' : a.gain > 0 ? 'pos' : '';
+    const row = document.createElement('div');
+    row.className = 'acct-row'; row.style.borderLeftColor = a.color;
+    row.innerHTML = `
+      <div class="ar-l"><div class="ar-name">${a.name}</div><div class="ar-sub">${a.sub.replace('\n','<br>')}</div></div>
+      <div class="ar-r"><div class="ar-val">${fmtBal(a.val)}</div><div class="ar-chg ${chgCls}">${chgText}</div></div>
+      <div class="ar-more">•••</div>`;
+    container.appendChild(row);
+  }
+
+  document.getElementById('total-val').textContent = fmtBal(d.total);
+  const tc = document.getElementById('total-chg');
+  tc.textContent = fmtChg(d.dayGain, d.dayPct);
+  tc.className = 'tr-chg ' + (pos ? 'pos' : 'neg');
+
+  buildChartXLabels();
+  document.getElementById('setup').style.display = 'none';
+  document.getElementById('account').style.display = 'block';
+  window.scrollTo(0, 0);
+
+  prices = genPrices(d.chartStart, d.chartEnd, d.chartSeed, d.vol);
+  setTimeout(() => animChart(prices, pos), 80);
+}
+
+function goBack() {
+  document.getElementById('account').style.display = 'none';
+  document.getElementById('setup').style.display = 'flex';
+  const url = new URL(location.href);
+  url.searchParams.delete('n'); url.searchParams.delete('t');
+  history.replaceState(null, '', url.toString());
+}
+
+function copyLink() {
+  navigator.clipboard.writeText(location.href)
+    .then(() => showToast('Flex link copied 🔗'))
+    .catch(() => showToast('Copy the URL to share'));
+}
+
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+// ── Init ──
+onSlider(2);
+
+// ── Load from URL params ──
+(function () {
+  const p = new URLSearchParams(location.search);
+  const n = p.get('n'), t = parseInt(p.get('t'));
+  if (n && t >= 0 && t <= 4) { setSlider(t); buildAccount(n, t); }
+})();
+</script>
+</body>
+</html>

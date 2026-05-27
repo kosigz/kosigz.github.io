@@ -112,8 +112,9 @@
     /* ─── Mobile ─────────────────────────────────────────────────────── */
 
     @media (max-width: 768px) {
-      .chopper { display: none; }
-      .quote   { display: none; }
+      .chopper   { display: none; }
+      .quote     { display: none; }
+      .cuda-wrap { display: none; }
 
       .footer {
         height: 160px;
@@ -544,7 +545,7 @@
       demoStep();
     })();
 
-    document.addEventListener('click', function(e) {
+document.addEventListener('click', function(e) {
       [0, 150, 300].forEach(function(delay) {
         setTimeout(function() {
           const r = document.createElement('div');
