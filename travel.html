@@ -296,8 +296,11 @@
           .attr('d', path);
 
         const n = visited.size;
+        const monthNames = ['January','February','March','April','May','June',
+          'July','August','September','October','November','December'];
+        const now = new Date();
         document.getElementById('count').textContent =
-          `As of February 2026, I have traveled to ${n} countries.`;
+          `As of ${monthNames[now.getMonth()]} ${now.getFullYear()}, I have traveled to ${n} countries.`;
       });
 
     // Sky time-of-day overlay (same as main page)
